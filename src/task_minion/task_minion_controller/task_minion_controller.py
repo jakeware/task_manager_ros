@@ -108,7 +108,7 @@ class TaskMinionController:
 
             process_config.commands.append(process_command)
 
-            return process_config
+        return process_config
 
     def Run(self):
         signal.signal(signal.SIGINT, signal_handler)

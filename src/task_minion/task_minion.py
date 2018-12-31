@@ -9,9 +9,6 @@ from task_master.srv import *
 from task_minion_controller.task_minion_controller import *
 from task_minion_model.task_minion_model import *
 
-# TODO:
-# Give RequestRegisterCommand to controller
-
 class TaskMinion:
     def __init__(self):
         print "TaskMinion::Constructor"
@@ -54,7 +51,7 @@ class TaskMinion:
     def ConvertFromRosProcessConfig(self, config_msg):
         process_config = ProcessConfig()
         for proc in config_msg.commands:
-            process_command = ConvertFromRosProcessCommand(proc)
+            process_command = self.ConvertFromRosProcessCommand(proc)
             process_config.commands.append(process_command)
         return process_config
 
