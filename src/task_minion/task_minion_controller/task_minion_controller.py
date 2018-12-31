@@ -17,10 +17,11 @@ def signal_handler(sig, frame):
         sys.exit(0)
 
 class TaskMinionController:
-    def __init__(self, model):
+    def __init__(self):
         self.root = Tk()
         self.view = TaskMinionView(self.root)
-        self.model = model
+        self.model = TaskMinionModel()
+        self.received_master_process_config = False  # have we received a process config from TaskMaster yet?
         self.active_pid = 0
 
         # bind handlers to input keys
@@ -37,6 +38,9 @@ class TaskMinionController:
         if last_active_pid != self.active_pid:
             self.view.SetProcessInactive(last_active_pid)
             self.view.SetProcessActive(self.active_pid)
+
+    def SetProcessStatus(self, process_status):
+        self.model.SetProcessStatus(process_status)
 
     def SetRequestRegisterCommandCallback(self, function):
         self.RequestRegisterCommand = function
@@ -56,6 +60,14 @@ class TaskMinionController:
 
     def HandleStop(self, event):
         print "HandleStop"
+
+    def ReceivedMasterProcessConfig(self):
+        return self.received_master_process_config
+
+    def SetMasterProcessConfig(self, process_config):
+        print "[TaskMinionController::SetMasterProcessConfig] Setting master process config"
+        self.received_master_process_config = True
+        self.model.SetProcessConfig(process_config)
 
     def RegisterCommands(self, process_config):
         print "TaskMinionController::RegisterCommands"
@@ -113,7 +125,7 @@ class TaskMinionController:
     def Run(self):
         signal.signal(signal.SIGINT, signal_handler)
 
-        while not self.model.ReceivedMasterProcessConfig():
+        while not self.ReceivedMasterProcessConfig():
             print "Waiting for process config message from master"
             time.sleep(0.2)
 

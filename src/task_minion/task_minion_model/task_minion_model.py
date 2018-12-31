@@ -23,15 +23,9 @@ class ProcessConfig:
 
 class TaskMinionModel:
     def __init__(self):
-        self.received_master_process_config = False  # have we received a process config from TaskMaster yet?
         self.yaml_process_config = {}  # raw yaml config file
         self.process_config = {}  # dictionary (indexed by process id) of registered ProcessCommands
         self.process_statuses = {}  # dictionary (indexed by process id) of ProcessStatuses
-
-    def SetMasterProcessConfig(self, process_config):
-        print "[TaskMinionModel::SetMasterProcessConfig] Setting master process config"
-        self.received_master_process_config = True
-        self.SetProcessConfig(process_config)
 
     def SetProcessConfig(self, process_config):
         if not process_config.commands:
@@ -45,9 +39,6 @@ class TaskMinionModel:
             print "[TaskMinionModel::SetProcessCommand] Overwriting process id: " + string(process_command.id)
 
         self.process_config[process_command.id] = process_command
-
-    def ReceivedMasterProcessConfig(self):
-        return self.received_master_process_config
 
     def HasProcessConfig(self):
         if self.process_config:

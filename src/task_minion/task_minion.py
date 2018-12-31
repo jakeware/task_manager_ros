@@ -12,8 +12,7 @@ from task_minion_model.task_minion_model import *
 class TaskMinion:
     def __init__(self):
         print "TaskMinion::Constructor"
-        self.model = TaskMinionModel()
-        self.controller = TaskMinionController(self.model)
+        self.controller = TaskMinionController()
         self.controller.SetRequestRegisterCommandCallback(self.RequestRegisterCommand)
 
     def RequestRegisterCommand(self, process_command):
@@ -66,14 +65,14 @@ class TaskMinion:
 
     def ProcessConfigCallback(self, config_msg):
         print "TaskMinion::ProcessConfigCallback"
-        if not self.model.ReceivedMasterProcessConfig():
+        if not self.controller.ReceivedMasterProcessConfig():
             process_config = self.ConvertFromRosProcessConfig(config_msg)
-            self.model.SetMasterProcessConfig(process_config)
+            self.controller.SetMasterProcessConfig(process_config)
 
     def ProcessStatusCallback(self, status_msg):
         print "TaskMinion::ProcessStatusCallback"
         process_status = self.ConvertFromRosProcessStatus(status_msg)
-        self.model.SetProcessStatus(process_status)
+        self.controller.SetProcessStatus(process_status)
 
     def Run(self):
         print "TaskMinion::Run"
