@@ -21,6 +21,9 @@ class TaskMinionController:
         self.root = Tk()
         self.view = TaskMinionView(self.root)
         self.model = TaskMinionModel()
+        self.model.AddProcessStatusCallback(self.ProcessStatusChanged)
+        self.model.AddProcessCommandCallback(self.ProcessCommandChanged)
+
         self.received_master_process_config = False  # have we received a process config from TaskMaster yet?
         self.active_pid = 0
 
@@ -39,12 +42,6 @@ class TaskMinionController:
             self.view.SetProcessInactive(last_active_pid)
             self.view.SetProcessActive(self.active_pid)
 
-    def SetProcessStatus(self, process_status):
-        self.model.SetProcessStatus(process_status)
-
-    def SetRequestRegisterCommandCallback(self, function):
-        self.RequestRegisterCommand = function
-
     def HandleDown(self, event):
         print "HandleDown"
         last_active_pid = self.active_pid
@@ -60,6 +57,19 @@ class TaskMinionController:
 
     def HandleStop(self, event):
         print "HandleStop"
+
+    def ProcessStatusChanged(self, pid):
+        print "[TaskMinionController] ProcessStatusChanged for pid:" + str(pid)
+
+    def ProcessCommandChanged(self, pid):
+        print "[TaskMinionController] ProcessCommandChanged for pid:" + str(pid)
+        self.view.SetProcessEntry(pid)
+
+    def SetProcessStatus(self, process_status):
+        self.model.SetProcessStatus(process_status)
+
+    def SetRequestRegisterCommandCallback(self, function):
+        self.RequestRegisterCommand = function
 
     def ReceivedMasterProcessConfig(self):
         return self.received_master_process_config
@@ -137,9 +147,5 @@ class TaskMinionController:
             process_config = self.LoadYamlConfiguration(config_path)
             registered_process_config = self.RegisterCommands(process_config)
             self.model.SetProcessConfig(registered_process_config)
-
-        # add test processes to view
-        for pid in range(self.model.GetProcessCount()):
-            self.view.AddProcessEntry(pid)
 
         self.view.root.mainloop()

@@ -26,6 +26,8 @@ class TaskMinionModel:
         self.yaml_process_config = {}  # raw yaml config file
         self.process_config = {}  # dictionary (indexed by process id) of registered ProcessCommands
         self.process_statuses = {}  # dictionary (indexed by process id) of ProcessStatuses
+        self.process_status_callbacks = []
+        self.process_command_callbacks = []
 
     def SetProcessConfig(self, process_config):
         if not process_config.commands:
@@ -36,9 +38,12 @@ class TaskMinionModel:
 
     def SetProcessCommand(self, process_command):
         if process_command.id in self.process_config:
-            print "[TaskMinionModel::SetProcessCommand] Overwriting process id: " + string(process_command.id)
+            print "[TaskMinionModel::SetProcessCommand] Overwriting process id: " + str(process_command.id)
 
         self.process_config[process_command.id] = process_command
+
+        for callback in self.process_command_callbacks:
+            callback(process_command.id)
 
     def HasProcessConfig(self):
         if self.process_config:
@@ -58,5 +63,14 @@ class TaskMinionModel:
         self.process_status[process_status.id].memory = process_status.memory
         self.process_status[process_status.id].stdout = self.process_status[process_status.id].stdout + process_status.stdout
 
+        for callback in self.process_status_callbacks:
+            callback(process_status.id)
+
     def GetProcessCount(self):
         return len(self.process_config)
+
+    def AddProcessCommandCallback(self, callback):
+        self.process_command_callbacks.append(callback)
+
+    def AddProcessStatusCallback(self, callback):
+        self.process_status_callbacks.append(callback)

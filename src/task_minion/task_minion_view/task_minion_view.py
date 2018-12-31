@@ -46,14 +46,14 @@ class TaskMinionView:
         self.root = root
         self.root.title("Task Master")
 
-        self.process_entries = []
+        self.process_entries = {}
         self.process_frame = Frame(self.root)
         self.process_frame.pack(fill=X)
         self.output_text = ScrolledText(self.root)
         self.output_text.pack(fill=BOTH, expand=1)
 
-    def AddProcessEntry(self, pid):
-        self.process_entries.append(ProcessEntry(self.process_frame, pid))
+    def SetProcessEntry(self, pid):
+        self.process_entries[pid] = ProcessEntry(self.process_frame, pid)
 
     def SetProcessActive(self, pid):
         self.process_entries[pid].SetActive()
