@@ -4,12 +4,14 @@ from Tkinter import *
 from ScrolledText import ScrolledText
 
 class ProcessEntry:
-    def __init__(self, parent, pid):
+    def __init__(self, parent, pid, order, name):
         self.pid = pid
         self.master_frame = Frame(parent)
-        self.master_frame.pack(fill=X)
-        self.name_text = Text(self.master_frame, state='disabled', height=1, width=10, highlightthickness=0, borderwidth=1, wrap='none')
+        self.master_frame.grid(row=order, column=0)
+        self.name_text = Text(self.master_frame, height=1, width=10, highlightthickness=0, borderwidth=1, wrap='none')
         self.name_text.pack(side=LEFT)
+        self.name_text.insert('1.0', name)
+        self.name_text.config(state='disabled')
         self.status_text = Text(self.master_frame, state='disabled', height=1, width=10, highlightthickness=0, borderwidth=1, wrap='none')
         self.status_text.pack(side=LEFT)
         self.load_text = Text(self.master_frame, state='disabled', height=1, width=10, highlightthickness=0, borderwidth=1, wrap='none')
@@ -52,8 +54,8 @@ class TaskMinionView:
         self.output_text = ScrolledText(self.root)
         self.output_text.pack(fill=BOTH, expand=1)
 
-    def SetProcessEntry(self, pid):
-        self.process_entries[pid] = ProcessEntry(self.process_frame, pid)
+    def SetProcessEntry(self, pid, order, name):
+        self.process_entries[pid] = ProcessEntry(self.process_frame, pid, order, name)
 
     def SetProcessActive(self, pid):
         self.process_entries[pid].SetActive()

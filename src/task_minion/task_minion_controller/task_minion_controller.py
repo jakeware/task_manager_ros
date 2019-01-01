@@ -25,7 +25,7 @@ class TaskMinionController:
         self.model.AddProcessCommandCallback(self.ProcessCommandChanged)
 
         self.received_master_process_config = False  # have we received a process config from TaskMaster yet?
-        self.active_pid = 0
+        self.active_index = 0
 
         # bind handlers to input keys
         self.root.bind('<Up>', self.HandleUp)
@@ -34,23 +34,23 @@ class TaskMinionController:
         self.root.bind('<Control-k>', self.HandleStop)
 
     def HandleUp(self, event):
-        last_active_pid = self.active_pid
-        self.active_pid = max(self.active_pid - 1, 0)
-        print "active_pid: " + str(self.active_pid)
+        last_active_index = self.active_index
+        self.active_index = max(self.active_index - 1, 0)
+        print "active_index: " + str(self.active_index)
 
-        if last_active_pid != self.active_pid:
-            self.view.SetProcessInactive(last_active_pid)
-            self.view.SetProcessActive(self.active_pid)
+        if last_active_index != self.active_index:
+            self.view.SetProcessInactive(last_active_index)
+            self.view.SetProcessActive(self.active_index)
 
     def HandleDown(self, event):
         print "HandleDown"
-        last_active_pid = self.active_pid
-        self.active_pid = min(self.active_pid + 1, self.model.GetProcessCount() - 1)
-        print "active_pid: " + str(self.active_pid)
+        last_active_index = self.active_index
+        self.active_index = min(self.active_index + 1, self.model.GetProcessCount() - 1)
+        print "active_index: " + str(self.active_index)
 
-        if last_active_pid != self.active_pid:
-            self.view.SetProcessInactive(last_active_pid)
-            self.view.SetProcessActive(self.active_pid)
+        if last_active_index != self.active_index:
+            self.view.SetProcessInactive(last_active_index)
+            self.view.SetProcessActive(self.active_index)
 
     def HandleStart(self, event):
         print "HandleStart"
@@ -61,9 +61,9 @@ class TaskMinionController:
     def ProcessStatusChanged(self, pid):
         print "[TaskMinionController] ProcessStatusChanged for pid:" + str(pid)
 
-    def ProcessCommandChanged(self, pid):
+    def ProcessCommandChanged(self, pid, order, name):
         print "[TaskMinionController] ProcessCommandChanged for pid:" + str(pid)
-        self.view.SetProcessEntry(pid)
+        self.view.SetProcessEntry(pid, order, name)
 
     def SetProcessStatus(self, process_status):
         self.model.SetProcessStatus(process_status)
@@ -90,10 +90,10 @@ class TaskMinionController:
 
     def LoadYamlConfiguration(self, config_file):
         with open(config_file, 'r') as stream:
-            self.yaml_process_config = yaml.load(stream)
+            yaml_process_config = yaml.load(stream)
 
-        if self.yaml_process_config:
-            process_config = self.ConvertFromYamlProcessConfig(self.yaml_process_config)
+        if yaml_process_config:
+            process_config = self.ConvertFromYamlProcessConfig(yaml_process_config)
             return process_config
         else:
             print "[TaskMinionModel::LoadYamlConfiguration] Empty YAML process configuration."

@@ -23,30 +23,66 @@ class ProcessConfig:
 
 class TaskMinionModel:
     def __init__(self):
-        self.yaml_process_config = {}  # raw yaml config file
-        self.process_config = {}  # dictionary (indexed by process id) of registered ProcessCommands
         self.process_statuses = {}  # dictionary (indexed by process id) of ProcessStatuses
+        self.sorted_process_config = []  # ordered processes where each element is a [id, process_command] pair.  Groups are stored as [-1. name].
         self.process_status_callbacks = []
         self.process_command_callbacks = []
+
+    def GetProcessGroups(self, process_config):
+        process_groups = []
+
+        # add all groups in process_config
+        for proc in process_config.commands:
+            if proc.group not in process_groups:
+                process_groups.append(proc.group)
+
+        print "[TaskMinionModel::GetProcessGroups] Process Groups:"
+        print process_groups
+
+        return process_groups
+
+    def SetSortedProcessConfig(self, process_config, process_groups):
+        self.sorted_process_config = []
+
+        # add all processes in groups first
+        for grp in process_groups:
+            self.AddGroupCommand(grp, len(self.sorted_process_config))
+
+            for proc in process_config.commands:
+                if grp == proc.group:
+                    self.AddProcessCommand(proc, len(self.sorted_process_config))
+
+        # now add processes not in a group
+        for proc in process_config.commands:
+            if not proc.group:
+                self.AddProcessCommand(proc, len(self.sorted_process_config))
+
+        print "[TaskMinionModel::GetProcessOrder] Process Order:"
+        print self.sorted_process_config
 
     def SetProcessConfig(self, process_config):
         if not process_config.commands:
             print "[TaskMinionModel::SetProcessConfig] Received empty process configuration"
+            return
 
-        for proc in process_config.commands:
-            self.SetProcessCommand(proc)
+        print "[TaskMinionModel::SetProcessConfig] Loading new process configuration"
+        process_groups = self.GetProcessGroups(process_config)
+        self.SetSortedProcessConfig(process_config, process_groups)
 
-    def SetProcessCommand(self, process_command):
-        if process_command.id in self.process_config:
-            print "[TaskMinionModel::SetProcessCommand] Overwriting process id: " + str(process_command.id)
-
-        self.process_config[process_command.id] = process_command
+    def AddGroupCommand(self, group_name, index):
+        self.sorted_process_config.insert(index, [-1, group_name])
 
         for callback in self.process_command_callbacks:
-            callback(process_command.id)
+            callback(-1, index, group_name)
+
+    def AddProcessCommand(self, process_command, index):
+        self.sorted_process_config.insert(index, [process_command.id, process_command])
+
+        for callback in self.process_command_callbacks:
+            callback(process_command.id, index, process_command.name)
 
     def HasProcessConfig(self):
-        if self.process_config:
+        if self.sorted_process_config:
             return True
         return False
 
@@ -67,7 +103,7 @@ class TaskMinionModel:
             callback(process_status.id)
 
     def GetProcessCount(self):
-        return len(self.process_config)
+        return len(self.sorted_process_config)
 
     def AddProcessCommandCallback(self, callback):
         self.process_command_callbacks.append(callback)
