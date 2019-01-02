@@ -14,6 +14,7 @@ class TaskMinion:
         print "TaskMinion::Constructor"
         self.controller = TaskMinionController()
         self.controller.SetRequestRegisterCommandCallback(self.RequestRegisterCommand)
+        self.controller.SetSendExecuteCommandCallback(self.SendExecuteCommand)
 
     def RequestRegisterCommand(self, process_command):
         command_msg = self.ConvertToRosProcessCommand(process_command)
@@ -24,6 +25,14 @@ class TaskMinion:
             return res.id
         except rospy.ServiceException, e:
             print "RegisterCommand service call failed: %s"%e
+
+    def SendExecuteCommand(self, process_id, command):
+        print "[TaskMinion::SendExecuteCommand] Called for id:" + str(process_id) + " with command:" + str(command)
+        execute_command = task_master.msg.ExecuteCommand()
+        execute_command.id = process_id
+        execute_command.command = command
+
+        self.execute_command_publisher.publish(execute_command)
 
     def ConvertToRosProcessCommand(self, process_task):
         command_msg = task_master.msg.ProcessCommand()
@@ -65,13 +74,13 @@ class TaskMinion:
         return task_status
 
     def ProcessConfigCallback(self, config_msg):
-        print "TaskMinion::ProcessConfigCallback"
+        # print "TaskMinion::ProcessConfigCallback"
         if not self.controller.ReceivedMasterProcessConfig():
             process_task_list = self.ConvertFromRosProcessConfig(config_msg)
             self.controller.SetMasterProcessConfig(process_task_list)
 
     def ProcessStatusCallback(self, status_msg):
-        print "TaskMinion::TaskStatusCallback"
+        # print "TaskMinion::TaskStatusCallback"
         task_status = self.ConvertFromRosProcessStatus(status_msg)
         self.controller.SetModelTaskStatus(task_status)
 
@@ -80,6 +89,7 @@ class TaskMinion:
         rospy.loginfo("Starting TaskMinion\n")
         rospy.Subscriber("/task_master/process_config", task_master.msg.ProcessConfig, self.ProcessConfigCallback)
         rospy.Subscriber("/task_master/process_status", task_master.msg.ProcessStatus, self.ProcessStatusCallback)
+        self.execute_command_publisher = rospy.Publisher('/task_master/execute_command', task_master.msg.ExecuteCommand, queue_size=10)
 
         self.controller.Run()
 

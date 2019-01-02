@@ -21,11 +21,12 @@ class TaskMinionController:
         self.root = Tk()
         self.view = TaskMinionView(self.root)
         self.model = TaskMinionModel()
-        self.model.AddTaskStatusCallback(self.TaskStatusChanged)
-        self.model.AddProcessConfigCallback(self.TaskTreeChanged)
+        self.model.SetTaskStatusCallback(self.TaskStatusChanged)
+        self.model.SetProcessConfigCallback(self.TaskTreeChanged)
 
         self.received_master_process_config = False  # have we received a process config from TaskMaster yet?
         self.active_index = 0
+        self.last_active_index = 0
 
         # bind handlers to input keys
         self.root.bind('<Up>', self.HandleUp)
@@ -33,50 +34,65 @@ class TaskMinionController:
         self.root.bind('<Control-s>', self.HandleStart)
         self.root.bind('<Control-k>', self.HandleStop)
 
+    def UpdateTaskActivity(self):
+        if self.last_active_index != self.active_index:
+            last_active_task = self.GetTaskByIndex(self.last_active_index)
+            self.SetTaskAndSubTreeActivity(self.view.SetTaskInactiveById, last_active_task)
+            active_task = self.GetTaskByIndex(self.active_index)
+            self.SetTaskAndSubTreeActivity(self.view.SetTaskActiveById, active_task)
+
     def HandleUp(self, event):
-        last_active_index = self.active_index
+        print "HandleUp"
+        self.last_active_index = self.active_index
         self.active_index = max(self.active_index - 1, 0)
         print "active_index: " + str(self.active_index)
-
-        if last_active_index != self.active_index:
-            self.SetTaskAndSubTreeActivityByIndex(self.view.SetTaskInactiveById, last_active_index)
-            self.SetTaskAndSubTreeActivityByIndex(self.view.SetTaskActiveById, self.active_index)
+        self.UpdateTaskActivity()
 
     def HandleDown(self, event):
         print "HandleDown"
-        last_active_index = self.active_index
+        self.last_active_index = self.active_index
         self.active_index = min(self.active_index + 1, self.view.GetTaskEntryCount() - 1)
         print "active_index: " + str(self.active_index)
+        self.UpdateTaskActivity()
 
-        if last_active_index != self.active_index:
-            self.SetTaskAndSubTreeActivityByIndex(self.view.SetTaskInactiveById, last_active_index)
-            self.SetTaskAndSubTreeActivityByIndex(self.view.SetTaskActiveById, self.active_index)
-
-    def SetTaskAndSubTreeActivityByIndex(self, set_activity_by_id, task_index):
-        task_id = self.view.TaskIndexToId(task_index)
-        self.SetTaskAndSubTreeActivityById(set_activity_by_id, task_id)
-
-    def SetTaskAndSubTreeActivityById(self, set_activity_by_id, task_id):
-        task = self.model.GetTaskById(task_id)
+    def SetTaskAndSubTreeActivity(self, set_activity_by_id, task):
         set_activity_by_id(task.id)
         if task.children:
             self.SetSubTreeActivity(set_activity_by_id, task.children)
 
     def SetSubTreeActivity(self, set_activity_by_id, task_subtree):
         for task_id, task in task_subtree.iteritems():
-            print task.name
             set_activity_by_id(task.id)
             if task.children:
-                self.SetSubActivity(set_activity_by_id, task.children)
+                self.SetSubTreeActivity(set_activity_by_id, task.children)
+
+    def SendTaskAndSubTreeExecuteCommand(self, command, task):
+        self.send_execute_command_callback(task.id, command)
+        if task.children:
+            self.SendSubTreeExecuteCommand(command, task.children)
+
+    def SendSubTreeExecuteCommand(self, command, task_subtree):
+        for task_id, task in task_subtree.iteritems():
+            self.send_execute_command_callback(task.id, command)
+            if task.children:
+                self.SendSubTreeExecuteCommand(command, task.children)
+
+    def GetTaskByIndex(self, task_index):
+        task_id = self.view.TaskIndexToId(task_index)
+        return self.model.GetTaskById(task_id)
 
     def HandleStart(self, event):
         print "HandleStart"
+        active_task = self.GetTaskByIndex(self.active_index)
+        self.SendTaskAndSubTreeExecuteCommand(1, active_task)
 
     def HandleStop(self, event):
         print "HandleStop"
+        active_task = self.GetTaskByIndex(self.active_index)
+        self.SendTaskAndSubTreeExecuteCommand(0, active_task)
 
     def TaskStatusChanged(self, task_id):
-        print "[TaskMinionController] TaskStatusChanged for id:" + str(task_id)
+        # print "[TaskMinionController] TaskStatusChanged for id:" + str(task_id)
         task_status = self.model.GetTaskStatusById(task_id)
         self.view.SetTaskLoad(task_status.id, task_status.load)
         self.view.SetTaskMemory(task_status.id, task_status.memory)
@@ -156,6 +172,9 @@ class TaskMinionController:
             process_task_list.append(process_task)
 
         return process_task_list
+
+    def SetSendExecuteCommandCallback(self, callback):
+        self.send_execute_command_callback = callback
 
     def Run(self):
         signal.signal(signal.SIGINT, signal_handler)

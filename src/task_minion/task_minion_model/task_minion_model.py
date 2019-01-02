@@ -22,8 +22,6 @@ class TaskMinionModel:
     def __init__(self):
         self.task_statuses = {}  # dictionary (indexed by process and group id) of TaskStatuses
         self.task_tree = {}  # dictionary (indexed by process and group id) of Tasks
-        self.task_status_callbacks = []
-        self.process_task_list_callbacks = []
 
     def FindTaskByName(self, task_name, task_subtree):
         for task_id, task in task_subtree.iteritems():
@@ -94,8 +92,7 @@ class TaskMinionModel:
         print "[TaskMinionModel::SetProcessTaskList] Loading new process task list"
         self.GetTaskTree(process_task_list)
 
-        for callback in self.process_task_list_callbacks:
-            callback(self.task_tree)
+        self.process_task_list_callback(self.task_tree)
 
     def HasTaskTree(self):
         if self.task_tree:
@@ -116,11 +113,10 @@ class TaskMinionModel:
         self.task_statuses[task_status.id].memory = task_status.memory
         self.task_statuses[task_status.id].stdout = self.task_statuses[task_status.id].stdout + task_status.stdout
 
-        for callback in self.task_status_callbacks:
-            callback(task_status.id)
+        self.task_status_callback(task_status.id)
 
-    def AddProcessConfigCallback(self, callback):
-        self.process_task_list_callbacks.append(callback)
+    def SetProcessConfigCallback(self, callback):
+        self.process_task_list_callback = callback
 
-    def AddTaskStatusCallback(self, callback):
-        self.task_status_callbacks.append(callback)
+    def SetTaskStatusCallback(self, callback):
+        self.task_status_callback = callback
