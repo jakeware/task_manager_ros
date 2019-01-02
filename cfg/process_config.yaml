@@ -1,0 +1,23 @@
+process1:
+  - command: ping 8.8.8.8
+  - group: group1
+process2:
+  - command: ping 8.8.8.8
+  - group: group1
+  - dependencies:
+    - process1
+process3:
+  - command: ping 8.8.8.8
+  - group: group2
+  - dependencies:
+    - process1
+    - process2
+process4:
+  - command: ping 8.8.8.8
+  - group: group2
+  - dependencies:
+    - process3
+process5:
+  - command: ping 8.8.8.8
+  - dependencies:
+    - process4

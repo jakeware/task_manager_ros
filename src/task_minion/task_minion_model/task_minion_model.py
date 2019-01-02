@@ -1,6 +1,6 @@
 # Copyright 2018 Massachusetts Institute of Technology
 
-class ProcessStatus:
+class TaskStatus:
     def __init__(self):
         self.id = -1
         # self.status = ""
@@ -9,104 +9,101 @@ class ProcessStatus:
         self.stdout = ""
         # self.message = ""
 
-class ProcessCommand:
+class Task:
     def __init__(self):
         self.id = -1
         self.name = ""
         self.command = ""
         self.group = ""
         self.dependencies = []
-
-class ProcessConfig:
-    def __init__(self):
-        self.commands = []
+        self.children = {}
 
 class TaskMinionModel:
     def __init__(self):
-        self.process_statuses = {}  # dictionary (indexed by process id) of ProcessStatuses
-        self.sorted_process_config = []  # ordered processes where each element is a [id, process_command] pair.  Groups are stored as [-1. name].
-        self.process_status_callbacks = []
-        self.process_command_callbacks = []
+        self.task_statuses = {}  # dictionary (indexed by process and group id) of TaskStatuses
+        self.task_tree = {}  # dictionary (indexed by process and group id) of Tasks
+        self.task_status_callbacks = []
+        self.process_task_list_callbacks = []
 
-    def GetProcessGroups(self, process_config):
-        process_groups = []
+    def FindTaskByNameInTree(self, task_name, task_subtree):
+        for task_id, task in task_subtree.iteritems():
+            if task.name == task_name:
+                return task
+            if task.children:
+                subtask = self.FindTaskByNameInTree(task_name, task.children)
+                if subtask:
+                    return subtask
+        return None
 
-        # add all groups in process_config
-        for proc in process_config.commands:
-            if proc.group not in process_groups:
-                process_groups.append(proc.group)
+    def GetTaskTree(self, process_task_list):
+        self.task_tree = {}
+        group_id = -2
 
-        print "[TaskMinionModel::GetProcessGroups] Process Groups:"
-        print process_groups
-
-        return process_groups
-
-    def SetSortedProcessConfig(self, process_config, process_groups):
-        self.sorted_process_config = []
-
-        # add all processes in groups first
-        for grp in process_groups:
-            self.AddGroupCommand(grp, len(self.sorted_process_config))
-
-            for proc in process_config.commands:
-                if grp == proc.group:
-                    self.AddProcessCommand(proc, len(self.sorted_process_config))
-
-        # now add processes not in a group
-        for proc in process_config.commands:
+        # add all tasks to task_tree (should be no groups in task list)
+        for proc in process_task_list:
+            # add task to root of tree if not in a group
             if not proc.group:
-                self.AddProcessCommand(proc, len(self.sorted_process_config))
+                self.task_tree[proc.id] = proc
+                continue
 
-        print "[TaskMinionModel::GetProcessOrder] Process Order:"
-        print self.sorted_process_config
+            # search for group in tree
+            group_task = self.FindTaskByNameInTree(proc.group, self.task_tree)
 
-    def SetProcessConfig(self, process_config):
-        if not process_config.commands:
-            print "[TaskMinionModel::SetProcessConfig] Received empty process configuration"
+            # if group already exists in tree, add process to group
+            if group_task:
+                group_task.children[proc.id] = proc
+            # otherwise, add new group to tree with process as child
+            else:
+                new_group_task = Task()
+                new_group_task.id = group_id
+                new_group_task.name = proc.group
+                new_group_task.children[proc.id] = proc
+                self.task_tree[group_id] = new_group_task
+                group_id = group_id - 1
+
+        print "[TaskMinionModel::GetProcessGroups] Task Tree:"
+        self.PrintTaskTree(self.task_tree)
+
+    def PrintTaskTree(self, task_subtree, depth=0):
+        for task_id, task in task_subtree.iteritems():
+            print str(depth) + ":" + task.name
+            if task.children:
+                self.PrintTaskTree(task.children, depth + 1)
+
+    def SetProcessTaskList(self, process_task_list):
+        if not process_task_list:
+            print "[TaskMinionModel::SetProcessTaskList] Received empty process task list"
             return
 
-        print "[TaskMinionModel::SetProcessConfig] Loading new process configuration"
-        process_groups = self.GetProcessGroups(process_config)
-        self.SetSortedProcessConfig(process_config, process_groups)
+        print "[TaskMinionModel::SetProcessTaskList] Loading new process task list"
+        self.GetTaskTree(process_task_list)
 
-    def AddGroupCommand(self, group_name, index):
-        self.sorted_process_config.insert(index, [-1, group_name])
+        for callback in self.process_task_list_callbacks:
+            callback(self.task_tree)
 
-        for callback in self.process_command_callbacks:
-            callback(-1, index, group_name)
-
-    def AddProcessCommand(self, process_command, index):
-        self.sorted_process_config.insert(index, [process_command.id, process_command])
-
-        for callback in self.process_command_callbacks:
-            callback(process_command.id, index, process_command.name)
-
-    def HasProcessConfig(self):
-        if self.sorted_process_config:
+    def HasTaskTree(self):
+        if self.task_tree:
             return True
         return False
 
-    def ProcessStatusExists(self, process_id):
-        if process_id in self.process_statuses:
+    def TaskStatusExists(self, task_id):
+        if task_id in self.task_statuses:
             return True
         return False
 
-    def SetProcessStatus(self, process_status):
-        if not ProcessStatusExists(process_status.id):
-            process_status[process_status.id] = ProcessStatus()
+    def SetTaskStatus(self, process_status):
+        if not TaskStatusExists(process_status.id):
+            task_status[process_status.id] = TaskStatus()
 
-        self.process_status[process_status.id].load = process_status.load
-        self.process_status[process_status.id].memory = process_status.memory
-        self.process_status[process_status.id].stdout = self.process_status[process_status.id].stdout + process_status.stdout
+        self.task_status[process_status.id].load = process_status.load
+        self.task_status[process_status.id].memory = process_status.memory
+        self.task_status[process_status.id].stdout = self.task_status[process_status.id].stdout + process_status.stdout
 
-        for callback in self.process_status_callbacks:
+        for callback in self.task_status_callbacks:
             callback(process_status.id)
 
-    def GetProcessCount(self):
-        return len(self.sorted_process_config)
+    def AddProcessConfigCallback(self, callback):
+        self.process_task_list_callbacks.append(callback)
 
-    def AddProcessCommandCallback(self, callback):
-        self.process_command_callbacks.append(callback)
-
-    def AddProcessStatusCallback(self, callback):
-        self.process_status_callbacks.append(callback)
+    def AddTaskStatusCallback(self, callback):
+        self.task_status_callbacks.append(callback)

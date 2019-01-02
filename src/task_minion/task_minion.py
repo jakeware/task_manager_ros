@@ -25,34 +25,34 @@ class TaskMinion:
         except rospy.ServiceException, e:
             print "RegisterCommand service call failed: %s"%e
 
-    def ConvertToRosProcessCommand(self, process_command):
+    def ConvertToRosProcessCommand(self, process_task):
         command_msg = task_master.msg.ProcessCommand()
         command_msg.header.stamp = rospy.Time.now()
-        command_msg.id = process_command.id
-        command_msg.name = process_command.name
-        command_msg.command = process_command.command
-        command_msg.group = process_command.group
-        command_msg.dependencies = process_command.dependencies
+        command_msg.id = process_task.id
+        command_msg.name = process_task.name
+        command_msg.command = process_task.command
+        command_msg.group = process_task.group
+        command_msg.dependencies = process_task.dependencies
 
         return command_msg
 
     def ConvertFromRosProcessCommand(self, command_msg):
-        process_command = ProcessCommand()
-        process_command.id = command_msg.id
-        process_command.name = command_msg.name
-        process_command.command = command_msg.command
-        process_command.group = command_msg.group
+        process_task = Task()
+        process_task.id = command_msg.id
+        process_task.name = command_msg.name
+        process_task.command = command_msg.command
+        process_task.group = command_msg.group
         for dep in command_msg.dependencies:
-            process_command.dependencies.append(dep)
+            process_task.dependencies.append(dep)
 
-        return process_command
+        return process_task
 
     def ConvertFromRosProcessConfig(self, config_msg):
-        process_config = ProcessConfig()
+        process_task_list = []
         for proc in config_msg.commands:
-            process_command = self.ConvertFromRosProcessCommand(proc)
-            process_config.commands.append(process_command)
-        return process_config
+            process_task = self.ConvertFromRosProcessCommand(proc)
+            process_task_list.append(process_task)
+        return process_task_list
 
     def ConvertFromRosProcessStatus(self, status_msg):
         process_status = task_minion_model.task_minion_model.ProcessStatus()
@@ -66,8 +66,8 @@ class TaskMinion:
     def ProcessConfigCallback(self, config_msg):
         print "TaskMinion::ProcessConfigCallback"
         if not self.controller.ReceivedMasterProcessConfig():
-            process_config = self.ConvertFromRosProcessConfig(config_msg)
-            self.controller.SetMasterProcessConfig(process_config)
+            process_task_list = self.ConvertFromRosProcessConfig(config_msg)
+            self.controller.SetMasterProcessConfig(process_task_list)
 
     def ProcessStatusCallback(self, status_msg):
         print "TaskMinion::ProcessStatusCallback"

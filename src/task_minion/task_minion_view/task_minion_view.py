@@ -3,40 +3,46 @@
 from Tkinter import *
 from ScrolledText import ScrolledText
 
-class ProcessEntry:
-    def __init__(self, parent, pid, order, name):
-        self.pid = pid
-        self.master_frame = Frame(parent)
-        self.master_frame.grid(row=order, column=0)
+class TaskEntry:
+    def __init__(self, parent_frame, task_id, task_name, task_depth):
+        self.task_id = task_id
+        
+        self.master_frame = Frame(parent_frame)
+        self.master_frame.pack(fill=X)
+
+        depth_indent = task_depth * '  '
         self.name_text = Text(self.master_frame, height=1, width=10, highlightthickness=0, borderwidth=1, wrap='none')
         self.name_text.pack(side=LEFT)
-        self.name_text.insert('1.0', name)
+        self.name_text.insert('1.0', depth_indent + task_name)
         self.name_text.config(state='disabled')
+        
         self.status_text = Text(self.master_frame, state='disabled', height=1, width=10, highlightthickness=0, borderwidth=1, wrap='none')
         self.status_text.pack(side=LEFT)
+        
         self.load_text = Text(self.master_frame, state='disabled', height=1, width=10, highlightthickness=0, borderwidth=1, wrap='none')
         self.load_text.pack(side=LEFT)
+        
         self.memory_text = Text(self.master_frame, state='disabled', height=1, width=10, highlightthickness=0, borderwidth=1, wrap='none')
         self.memory_text.pack(side=LEFT)
+        
         self.message_text = Text(self.master_frame, state='disabled', height=1, highlightthickness=0, borderwidth=1, wrap='none')
         self.message_text.pack(side=LEFT,fill=X, expand=1)
 
-        self.process_background_color_inactive_odd = 'white'
-        self.process_background_color_inactive_even = 'light sky blue'
-        self.process_background_color_active = 'blue'
+        self.task_background_color_inactive = 'white'
+        self.task_background_color_active = 'blue'
+
+        self.SetInactive()
 
     def SetActive(self):
-        self.name_text['bg'] = self.process_background_color_active
-        self.status_text['bg'] = self.process_background_color_active
-        self.load_text['bg'] = self.process_background_color_active
-        self.memory_text['bg'] = self.process_background_color_active
-        self.message_text['bg'] = self.process_background_color_active
+        color = self.task_background_color_active
+        self.name_text['bg'] = color
+        self.status_text['bg'] = color
+        self.load_text['bg'] = color
+        self.memory_text['bg'] = color
+        self.message_text['bg'] = color
 
     def SetInactive(self):
-        color = self.process_background_color_inactive_odd
-        if self.pid % 2 == 0:
-            color = self.process_background_color_inactive_even
-
+        color = self.task_background_color_inactive
         self.name_text['bg'] = color
         self.status_text['bg'] = color
         self.load_text['bg'] = color
@@ -47,18 +53,20 @@ class TaskMinionView:
     def __init__(self, root):
         self.root = root
         self.root.title("Task Master")
-
-        self.process_entries = {}
-        self.process_frame = Frame(self.root)
-        self.process_frame.pack(fill=X)
+        self.task_entries = []  # ordered list of task entries
+        self.task_frame = Frame(self.root)
+        self.task_frame.pack(fill=X)
         self.output_text = ScrolledText(self.root)
         self.output_text.pack(fill=BOTH, expand=1)
 
-    def SetProcessEntry(self, pid, order, name):
-        self.process_entries[pid] = ProcessEntry(self.process_frame, pid, order, name)
+    def SetTaskEntry(self, task_id, task_name, task_depth):
+        self.task_entries.append(TaskEntry(self.task_frame, task_id, task_name, task_depth))
 
-    def SetProcessActive(self, pid):
-        self.process_entries[pid].SetActive()
+    def SetTaskActive(self, task_id):
+        self.task_entries[task_id].SetActive()
 
-    def SetProcessInactive(self, pid):
-        self.process_entries[pid].SetInactive()
+    def SetTaskInactive(self, task_id):
+        self.task_entries[task_id].SetInactive()
+
+    def GetTaskEntryCount(self):
+        return len(self.task_entries)
