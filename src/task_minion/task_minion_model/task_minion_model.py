@@ -48,6 +48,9 @@ class TaskMinionModel:
     def GetTaskById(self, task_id):
         return self.FindTaskById(task_id, self.task_tree)
 
+    def GetTaskStatusById(self, task_id):
+        return self.task_statuses[task_id]
+
     def GetTaskTree(self, process_task_list):
         self.task_tree = {}
         group_id = -2
@@ -104,16 +107,17 @@ class TaskMinionModel:
             return True
         return False
 
-    def SetTaskStatus(self, process_status):
-        if not TaskStatusExists(process_status.id):
-            task_status[process_status.id] = TaskStatus()
+    def SetTaskStatus(self, task_status):
+        if not self.TaskStatusExists(task_status.id):
+            self.task_statuses[task_status.id] = TaskStatus()
 
-        self.task_status[process_status.id].load = process_status.load
-        self.task_status[process_status.id].memory = process_status.memory
-        self.task_status[process_status.id].stdout = self.task_status[process_status.id].stdout + process_status.stdout
+        self.task_statuses[task_status.id].id = task_status.id
+        self.task_statuses[task_status.id].load = task_status.load
+        self.task_statuses[task_status.id].memory = task_status.memory
+        self.task_statuses[task_status.id].stdout = self.task_statuses[task_status.id].stdout + task_status.stdout
 
         for callback in self.task_status_callbacks:
-            callback(process_status.id)
+            callback(task_status.id)
 
     def AddProcessConfigCallback(self, callback):
         self.process_task_list_callbacks.append(callback)

@@ -79,6 +79,16 @@ class TaskEntry:
         self.memory_text['bg'] = color
         self.message_text['bg'] = color
 
+    def SetTaskLoad(self, task_load):
+        self.load_text.config(state='normal')
+        self.load_text.insert('1.0', str(task_load))
+        self.load_text.config(state='disabled')
+
+    def SetTaskMemory(self, task_memory):
+        self.memory_text.config(state='normal')
+        self.memory_text.insert('1.0', str(task_memory))
+        self.memory_text.config(state='disabled')
+
 class TaskMinionView:
     def __init__(self, root):
         self.root = root
@@ -114,3 +124,17 @@ class TaskMinionView:
 
     def TaskIndexToId(self, task_index):
         return self.task_order[task_index]
+
+    def SetTaskLoad(self, task_id, task_load):
+        if task_id in self.task_entries:
+            task_entry = self.task_entries[task_id]
+            task_entry.SetTaskLoad(task_load)
+        else:
+            print "[TaskMinionModel::SetTaskLoad] Missing id:" + str(task_id)
+
+    def SetTaskMemory(self, task_id, task_memory):
+        if task_id in self.task_entries:
+            task_entry = self.task_entries[task_id]
+            task_entry.SetTaskMemory(task_memory)
+        else:
+            print "[TaskMinionModel::SetTaskMemory] Missing id:" + str(task_id)

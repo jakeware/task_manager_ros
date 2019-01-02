@@ -55,13 +55,13 @@ class TaskMinion:
         return process_task_list
 
     def ConvertFromRosProcessStatus(self, status_msg):
-        process_status = task_minion_model.task_minion_model.ProcessStatus()
-        process_status.id = status_msg.id
-        process_status.load = status_msg.load
-        process_status.memory = status_msg.memory
-        process_status.stdout = status_msg.stdout
+        task_status = TaskStatus()
+        task_status.id = status_msg.id
+        task_status.load = status_msg.load
+        task_status.memory = status_msg.memory
+        task_status.stdout = status_msg.stdout
 
-        return process_status
+        return task_status
 
     def ProcessConfigCallback(self, config_msg):
         print "TaskMinion::ProcessConfigCallback"
@@ -70,9 +70,9 @@ class TaskMinion:
             self.controller.SetMasterProcessConfig(process_task_list)
 
     def ProcessStatusCallback(self, status_msg):
-        print "TaskMinion::ProcessStatusCallback"
-        process_status = self.ConvertFromRosProcessStatus(status_msg)
-        self.controller.SetProcessStatus(process_status)
+        print "TaskMinion::TaskStatusCallback"
+        task_status = self.ConvertFromRosProcessStatus(status_msg)
+        self.controller.SetModelTaskStatus(task_status)
 
     def Run(self):
         print "TaskMinion::Run"

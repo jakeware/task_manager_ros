@@ -75,8 +75,11 @@ class TaskMinionController:
     def HandleStop(self, event):
         print "HandleStop"
 
-    def TaskStatusChanged(self, pid):
-        print "[TaskMinionController] TaskStatusChanged for pid:" + str(pid)
+    def TaskStatusChanged(self, task_id):
+        print "[TaskMinionController] TaskStatusChanged for id:" + str(task_id)
+        task_status = self.model.GetTaskStatusById(task_id)
+        self.view.SetTaskLoad(task_status.id, task_status.load)
+        self.view.SetTaskMemory(task_status.id, task_status.memory)
 
     def AddTaskEntriesDepthFirst(self, task_subtree, depth=0):
         for task_id, task in task_subtree.iteritems():
@@ -88,8 +91,8 @@ class TaskMinionController:
         print "[TaskMinionController] ProcessConfigChanged"
         self.AddTaskEntriesDepthFirst(task_tree)
 
-    def SetProcessStatus(self, process_status):
-        self.model.SetProcessStatus(process_status)
+    def SetModelTaskStatus(self, task_status):
+        self.model.SetTaskStatus(task_status)
 
     def SetRequestRegisterCommandCallback(self, function):
         self.RequestRegisterCommand = function
