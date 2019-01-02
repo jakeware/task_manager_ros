@@ -25,15 +25,28 @@ class TaskMinionModel:
         self.task_status_callbacks = []
         self.process_task_list_callbacks = []
 
-    def FindTaskByNameInTree(self, task_name, task_subtree):
+    def FindTaskByName(self, task_name, task_subtree):
         for task_id, task in task_subtree.iteritems():
             if task.name == task_name:
                 return task
             if task.children:
-                subtask = self.FindTaskByNameInTree(task_name, task.children)
+                subtask = self.FindTaskByName(task_name, task.children)
                 if subtask:
                     return subtask
         return None
+
+    def FindTaskById(self, requested_task_id, task_subtree):
+        for task_id, task in task_subtree.iteritems():
+            if task.id == requested_task_id:
+                return task
+            if task.children:
+                subtask = self.FindTaskById(requested_task_id, task.children)
+                if subtask:
+                    return subtask
+        return None
+
+    def GetTaskById(self, task_id):
+        return self.FindTaskById(task_id, self.task_tree)
 
     def GetTaskTree(self, process_task_list):
         self.task_tree = {}
@@ -47,7 +60,7 @@ class TaskMinionModel:
                 continue
 
             # search for group in tree
-            group_task = self.FindTaskByNameInTree(proc.group, self.task_tree)
+            group_task = self.FindTaskByName(proc.group, self.task_tree)
 
             # if group already exists in tree, add process to group
             if group_task:

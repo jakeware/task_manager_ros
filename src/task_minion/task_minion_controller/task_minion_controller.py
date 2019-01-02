@@ -39,8 +39,8 @@ class TaskMinionController:
         print "active_index: " + str(self.active_index)
 
         if last_active_index != self.active_index:
-            self.view.SetTaskInactive(last_active_index)
-            self.view.SetTaskActive(self.active_index)
+            self.SetTaskAndSubTreeActivityByIndex(self.view.SetTaskInactiveById, last_active_index)
+            self.SetTaskAndSubTreeActivityByIndex(self.view.SetTaskActiveById, self.active_index)
 
     def HandleDown(self, event):
         print "HandleDown"
@@ -49,10 +49,25 @@ class TaskMinionController:
         print "active_index: " + str(self.active_index)
 
         if last_active_index != self.active_index:
-            self.view.SetTaskInactive(last_active_index)
-            self.view.SetTaskActive(self.active_index)
+            self.SetTaskAndSubTreeActivityByIndex(self.view.SetTaskInactiveById, last_active_index)
+            self.SetTaskAndSubTreeActivityByIndex(self.view.SetTaskActiveById, self.active_index)
 
-    # def SetTaskAndChildrenActivity(self, task_subtree, activity):
+    def SetTaskAndSubTreeActivityByIndex(self, set_activity_by_id, task_index):
+        task_id = self.view.TaskIndexToId(task_index)
+        self.SetTaskAndSubTreeActivityById(set_activity_by_id, task_id)
+
+    def SetTaskAndSubTreeActivityById(self, set_activity_by_id, task_id):
+        task = self.model.GetTaskById(task_id)
+        set_activity_by_id(task.id)
+        if task.children:
+            self.SetSubTreeActivity(set_activity_by_id, task.children)
+
+    def SetSubTreeActivity(self, set_activity_by_id, task_subtree):
+        for task_id, task in task_subtree.iteritems():
+            print task.name
+            set_activity_by_id(task.id)
+            if task.children:
+                self.SetSubActivity(set_activity_by_id, task.children)
 
     def HandleStart(self, event):
         print "HandleStart"

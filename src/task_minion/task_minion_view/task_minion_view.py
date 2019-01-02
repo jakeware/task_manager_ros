@@ -53,20 +53,33 @@ class TaskMinionView:
     def __init__(self, root):
         self.root = root
         self.root.title("Task Master")
-        self.task_entries = []  # ordered list of task entries
+        self.task_entries = {}  # dictionary (indexed by task_id) of TaskEntries
+        self.task_order = []  # list of task ids in order they are displayed
         self.task_frame = Frame(self.root)
         self.task_frame.pack(fill=X)
         self.output_text = ScrolledText(self.root)
         self.output_text.pack(fill=BOTH, expand=1)
 
     def SetTaskEntry(self, task_id, task_name, task_depth):
-        self.task_entries.append(TaskEntry(self.task_frame, task_id, task_name, task_depth))
+        self.task_entries[task_id] = TaskEntry(self.task_frame, task_id, task_name, task_depth)
+        self.task_order.append(task_id)
 
-    def SetTaskActive(self, task_id):
+    def SetTaskActiveByIndex(self, task_index):
+        task_id = self.task_order[task_index]
+        self.SetTaskActiveById(task_id)
+
+    def SetTaskInactiveByIndex(self, task_index):
+        task_id = self.task_order[task_index]
+        self.SetTaskInactiveById(task_id)
+
+    def SetTaskActiveById(self, task_id):
         self.task_entries[task_id].SetActive()
 
-    def SetTaskInactive(self, task_id):
+    def SetTaskInactiveById(self, task_id):
         self.task_entries[task_id].SetInactive()
 
     def GetTaskEntryCount(self):
         return len(self.task_entries)
+
+    def TaskIndexToId(self, task_index):
+        return self.task_order[task_index]
