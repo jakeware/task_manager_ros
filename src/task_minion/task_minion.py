@@ -52,6 +52,7 @@ class TaskMinion:
         for proc in config_msg.commands:
             process_task = self.ConvertFromRosProcessCommand(proc)
             process_task_list.append(process_task)
+
         return process_task_list
 
     def ConvertFromRosProcessStatus(self, status_msg):
