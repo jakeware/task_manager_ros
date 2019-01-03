@@ -108,7 +108,7 @@ class TaskMinionController:
 
     def AddTaskEntriesDepthFirst(self, task_subtree, depth=0):
         for task_id, task in task_subtree.iteritems():
-            self.view.SetTaskEntry(task.id, task.name, depth)
+            self.view.AddTask(task.id, task.name, depth)
             if task.children:
                 self.AddTaskEntriesDepthFirst(task.children, depth + 1)
 

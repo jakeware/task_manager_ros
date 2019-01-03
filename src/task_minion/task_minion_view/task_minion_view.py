@@ -71,7 +71,7 @@ class TaskEntry:
         self.task_background_color_inactive = 'white'
         self.task_background_color_active = 'blue'
 
-        self.SetInactive()
+        self.SetInactive()        
 
     def SetActive(self):
         color = self.task_background_color_active
@@ -99,23 +99,41 @@ class TaskEntry:
         self.memory_text.insert('1.0', str(task_memory))
         self.memory_text.config(state='disabled')
 
+class OutputEntry:
+    def __init__(self, parent_frame, task_id):
+        self.task_id = task_id
+
+        self.master_frame = Frame(parent_frame)
+        self.master_frame.grid(row=2, column=0, sticky=NSEW)
+        self.master_frame.grid_rowconfigure(0, weight=1)
+        self.master_frame.grid_columnconfigure(0, weight=1)
+        self.output_text = ScrolledText(self.master_frame)
+        self.output_text.grid(row=0, column=0, sticky=NSEW)
+        self.output_text.insert('1.0', "Task ID:" + str(task_id))
+        self.output_text.config(state='disabled')
+
+    def Raise(self):
+        print "Raise ID:" + str(self.task_id)
+        self.master_frame.lift()
+
 class TaskMinionView:
     def __init__(self, root):
+        self.task_entries = {}  # dictionary (indexed by task_id) of TaskEntries
+        self.output_entries = {}  # dictionary (indexed by task_id) of OutputEntries
+        self.task_order = []  # list of task ids in order they are displayed
+
+        # layout
         self.root = root
         self.root.title("Task Master")
-        self.task_entries = {}  # dictionary (indexed by task_id) of TaskEntries
-        self.task_order = []  # list of task ids in order they are displayed
+        self.root.grid_rowconfigure(2, weight=1)
+        self.root.grid_columnconfigure(0, weight=1)
         self.header = HeaderEntry(self.root)
         self.task_frame = Frame(self.root)
         self.task_frame.grid(row=1, column=0, sticky=NSEW)
-        self.output_text = ScrolledText(self.root)
-        self.output_text.grid(row=2, column=0, sticky=NSEW)
 
-        self.root.grid_rowconfigure(2, weight=1)
-        self.root.grid_columnconfigure(0, weight = 1)
-
-    def SetTaskEntry(self, task_id, task_name, task_depth):
+    def AddTask(self, task_id, task_name, task_depth):
         self.task_entries[task_id] = TaskEntry(self.task_frame, task_id, task_name, task_depth)
+        self.output_entries[task_id] = OutputEntry(self.root, task_id)
         self.task_order.append(task_id)
 
     def SetTaskActiveByIndex(self, task_index):
@@ -127,6 +145,7 @@ class TaskMinionView:
         self.SetTaskInactiveById(task_id)
 
     def SetTaskActiveById(self, task_id):
+        self.output_entries[task_id].Raise()
         self.task_entries[task_id].SetActive()
 
     def SetTaskInactiveById(self, task_id):
@@ -155,8 +174,8 @@ class TaskMinionView:
         else:
             print "[TaskMinionModel::SetTaskMemory] Missing id:" + str(task_id)
 
-    def SetTaskOutput(self, task_stdout):
-        self.output_text.config(state='normal')
-        self.output_text.delete('1.0', END)
-        self.output_text.insert('1.0', task_stdout)
-        self.output_text.config(state='disabled')
+    # def SetTaskOutput(self, task_stdout):
+    #     self.output_text.config(state='normal')
+    #     self.output_text.delete('1.0', END)
+    #     self.output_text.insert('1.0', task_stdout)
+    #     self.output_text.config(state='disabled')
