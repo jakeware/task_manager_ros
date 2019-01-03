@@ -112,9 +112,16 @@ class OutputEntry:
         self.output_text.insert('1.0', "Task ID:" + str(task_id))
         self.output_text.config(state='disabled')
 
-    def Raise(self):
+    def SetActive(self):
         print "Raise ID:" + str(self.task_id)
         self.master_frame.lift()
+
+    def SetTaskOutput(self, task_output):
+        self.output_text.config(state='normal')
+        self.output_text.delete('1.0', END)
+        self.output_text.insert('1.0', task_output)
+        self.output_text.see(END)
+        self.output_text.config(state='disabled')
 
 class TaskMinionView:
     def __init__(self, root):
@@ -145,7 +152,7 @@ class TaskMinionView:
         self.SetTaskInactiveById(task_id)
 
     def SetTaskActiveById(self, task_id):
-        self.output_entries[task_id].Raise()
+        self.output_entries[task_id].SetActive()
         self.task_entries[task_id].SetActive()
 
     def SetTaskInactiveById(self, task_id):
@@ -160,22 +167,23 @@ class TaskMinionView:
         else:
             print "[TaskMinionModel::TaskIndexToId] Index out of bounds:" + str(task_index)
 
-    def SetTaskLoad(self, task_id, task_load):
+    def SetTaskLoadById(self, task_id, task_load):
         if task_id in self.task_entries:
             task_entry = self.task_entries[task_id]
             task_entry.SetTaskLoad(task_load)
         else:
-            print "[TaskMinionModel::SetTaskLoad] Missing id:" + str(task_id)
+            print "[TaskMinionModel::SetTaskLoadById] Missing id:" + str(task_id)
 
-    def SetTaskMemory(self, task_id, task_memory):
+    def SetTaskMemoryById(self, task_id, task_memory):
         if task_id in self.task_entries:
             task_entry = self.task_entries[task_id]
             task_entry.SetTaskMemory(task_memory)
         else:
-            print "[TaskMinionModel::SetTaskMemory] Missing id:" + str(task_id)
+            print "[TaskMinionModel::SetTaskMemoryById] Missing id:" + str(task_id)
 
-    # def SetTaskOutput(self, task_stdout):
-    #     self.output_text.config(state='normal')
-    #     self.output_text.delete('1.0', END)
-    #     self.output_text.insert('1.0', task_stdout)
-    #     self.output_text.config(state='disabled')
+    def SetTaskOutputById(self, task_id, task_output):
+        if task_id in self.output_entries:
+            output_entry = self.output_entries[task_id]
+            output_entry.SetTaskOutput(task_output)
+        else:
+            print "[TaskMinionModel::SetTaskOutputById] Missing id:" + str(task_id)

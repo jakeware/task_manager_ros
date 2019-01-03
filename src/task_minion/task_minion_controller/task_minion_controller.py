@@ -39,14 +39,7 @@ class TaskMinionController:
             last_active_task = self.GetTaskByIndex(self.last_active_index)
             self.SetTaskAndSubTreeActivity(self.view.SetTaskInactiveById, last_active_task)
             active_task = self.GetTaskByIndex(self.active_index)
-            self.SetTaskAndSubTreeActivity(self.view.SetTaskActiveById, active_task)
-
-    def SetTaskOutput(self):
-        active_task_id = self.view.TaskIndexToId(self.active_index)
-        print "active_task_id:" + str(active_task_id)
-        active_task_status = self.model.GetTaskStatusById(active_task_id)
-        if active_task_status:
-            self.view.SetTaskOutput(active_task_status.stdout)
+            self.SetTaskAndSubTreeActivity(self.view.SetTaskActiveById, active_task) 
 
     def HandleUp(self, event):
         print "HandleUp"
@@ -54,7 +47,6 @@ class TaskMinionController:
         self.active_index = max(self.active_index - 1, 0)
         print "active_index: " + str(self.active_index)
         self.SetTaskActivity()
-        self.SetTaskOutput()
 
     def HandleDown(self, event):
         print "HandleDown"
@@ -62,7 +54,6 @@ class TaskMinionController:
         self.active_index = min(self.active_index + 1, self.view.GetTaskEntryCount() - 1)
         print "active_index: " + str(self.active_index)
         self.SetTaskActivity()
-        self.SetTaskOutput()
 
     def SetTaskAndSubTreeActivity(self, set_activity_by_id, task):
         set_activity_by_id(task.id)
@@ -103,8 +94,9 @@ class TaskMinionController:
     def TaskStatusChanged(self, task_id):
         # print "[TaskMinionController] TaskStatusChanged for id:" + str(task_id)
         task_status = self.model.GetTaskStatusById(task_id)
-        self.view.SetTaskLoad(task_status.id, task_status.load)
-        self.view.SetTaskMemory(task_status.id, task_status.memory)
+        self.view.SetTaskLoadById(task_status.id, task_status.load)
+        self.view.SetTaskMemoryById(task_status.id, task_status.memory)
+        self.view.SetTaskOutputById(task_status.id, task_status.stdout)
 
     def AddTaskEntriesDepthFirst(self, task_subtree, depth=0):
         for task_id, task in task_subtree.iteritems():
