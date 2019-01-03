@@ -6,7 +6,7 @@ from ScrolledText import ScrolledText
 class HeaderEntry:
     def __init__(self, parent_frame):
         self.master_frame = Frame(parent_frame)
-        self.master_frame.pack(fill=X)
+        self.master_frame.grid(row=0, column=0, sticky=NSEW)
 
         self.name_text = Text(self.master_frame, height=1, width=10, highlightthickness=0, borderwidth=1, wrap='none')
         self.name_text.pack(side=LEFT)
@@ -107,9 +107,12 @@ class TaskMinionView:
         self.task_order = []  # list of task ids in order they are displayed
         self.header = HeaderEntry(self.root)
         self.task_frame = Frame(self.root)
-        self.task_frame.pack(fill=X)
+        self.task_frame.grid(row=1, column=0, sticky=NSEW)
         self.output_text = ScrolledText(self.root)
-        self.output_text.pack(fill=BOTH, expand=1)
+        self.output_text.grid(row=2, column=0, sticky=NSEW)
+
+        self.root.grid_rowconfigure(2, weight=1)
+        self.root.grid_columnconfigure(0, weight = 1)
 
     def SetTaskEntry(self, task_id, task_name, task_depth):
         self.task_entries[task_id] = TaskEntry(self.task_frame, task_id, task_name, task_depth)
