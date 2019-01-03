@@ -63,11 +63,6 @@ class TaskMinionController:
             if task.children:
                 self.SetSubTreeActivity(set_activity_by_id, task.children)
 
-    def SendTaskAndSubTreeExecuteCommand(self, command, task):
-        self.send_execute_command_callback(task.id, command)
-        if task.children:
-            self.SendSubTreeExecuteCommand(command, task.children)
-
     def SendSubTreeExecuteCommand(self, command, task_subtree):
         for task_id, task in task_subtree.iteritems():
             self.send_execute_command_callback(task.id, command)
@@ -81,12 +76,18 @@ class TaskMinionController:
     def HandleStart(self, event):
         print "HandleStart"
         active_task = self.GetTaskByIndex(self.active_index)
-        self.SendTaskAndSubTreeExecuteCommand(1, active_task)
+        if not active_task.children:
+            self.send_execute_command_callback(active_task.id, 1)
+        else:
+            self.SendSubTreeExecuteCommand(1, active_task.children)
 
     def HandleStop(self, event):
         print "HandleStop"
         active_task = self.GetTaskByIndex(self.active_index)
-        self.SendTaskAndSubTreeExecuteCommand(0, active_task)
+        if not active_task.children:
+            self.send_execute_command_callback(active_task.id, 0)
+        else:
+            self.SendSubTreeExecuteCommand(0, active_task.children)
 
     def TaskStatusChanged(self, task_id):
         # print "[TaskMinionController] TaskStatusChanged for id:" + str(task_id)

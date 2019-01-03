@@ -83,7 +83,7 @@ class TaskMinionModel:
 
     def PrintTaskTree(self, task_subtree, depth=0):
         for task_id, task in task_subtree.iteritems():
-            print str(depth) + ":" + task.name
+            print str(depth) + ", " + str(task_id) + ", " + task.name
             if task.children:
                 self.PrintTaskTree(task.children, depth + 1)
 
