@@ -21,7 +21,7 @@ class Task:
 class TaskMinionModel:
     def __init__(self):
         self.task_statuses = {}  # dictionary (indexed by process and group id) of TaskStatuses
-        self.task_tree = {}  # dictionary (indexed by process and group id) of Tasks
+        self.task_tree = {}  # tree of tasks with root being dictionary (indexed by process and group id)
 
     def FindTaskByName(self, task_name, task_subtree):
         for task_id, task in task_subtree.iteritems():
@@ -56,8 +56,10 @@ class TaskMinionModel:
         self.task_tree = {}
         group_id = -2
 
-        # add all tasks to task_tree (should be no groups in task list)
+        # add all tasks to task_tree (should be no groups in input task list)
         for proc in process_task_list:
+
+
             # add task to root of tree if not in a group
             if not proc.group:
                 self.task_tree[proc.id] = proc
@@ -108,15 +110,30 @@ class TaskMinionModel:
         return False
 
     def SetTaskStatus(self, task_status):
-        if not self.TaskStatusExists(task_status.id):
-            self.task_statuses[task_status.id] = TaskStatus()
-
         self.task_statuses[task_status.id].id = task_status.id
         self.task_statuses[task_status.id].load = task_status.load
         self.task_statuses[task_status.id].memory = task_status.memory
         self.task_statuses[task_status.id].stdout = self.task_statuses[task_status.id].stdout + task_status.stdout
-
         self.task_status_callback(task_status.id)
+
+        self.SetGroupStatus(task_status.id)
+
+    def SetGroupStatus(self, task_id):
+        task = self.FindTaskById(task_id, self.task_tree)
+        if not task or not task.children:
+            return
+        group_task = self.FindTaskByName(task.group, self.task_tree)
+        load_total = 0
+        memory_total = 0
+        for task_id, task in group_task.children.iteritems():
+            load_total = load_total + task.load
+            memory_total = memory_total + task.memory
+
+        group_status = self.FindTaskStatusById(group_task.id)
+        group_status.load = load_total
+        group_status.memory = memory_total
+
+        self.task_status_callback(group_status.id)
 
     def SetProcessConfigCallback(self, callback):
         self.process_task_list_callback = callback

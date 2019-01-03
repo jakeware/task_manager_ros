@@ -1,5 +1,5 @@
 process1:
-  - command: ping 8.8.8.8
+  - command: sysbench --test=cpu --cpu-max-prime=10000 run
   - group: group1
 process2:
   - command: ping 8.8.8.8

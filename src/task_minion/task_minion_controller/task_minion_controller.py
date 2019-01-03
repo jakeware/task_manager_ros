@@ -90,7 +90,8 @@ class TaskMinionController:
             self.SendSubTreeExecuteCommand(0, active_task.children)
 
     def TaskStatusChanged(self, task_id):
-        # print "[TaskMinionController] TaskStatusChanged for id:" + str(task_id)
+        if task_id < 0:
+            print "[TaskMinionController] TaskStatusChanged for id:" + str(task_id)
         task_status = self.model.GetTaskStatusById(task_id)
         self.view.SetTaskLoadById(task_status.id, task_status.load)
         self.view.SetTaskMemoryById(task_status.id, task_status.memory)
