@@ -143,20 +143,24 @@ class TaskMinionView:
         self.output_entries[task_id] = OutputEntry(self.root, task_id)
         self.task_order.append(task_id)
 
-    def SetTaskActiveByIndex(self, task_index):
-        task_id = TaskIndexToId(task_index)
-        self.SetTaskActiveById(task_id)
-
-    def SetTaskInactiveByIndex(self, task_index):
-        task_id = TaskIndexToId(task_index)
-        self.SetTaskInactiveById(task_id)
+    def SetTaskAndOutputActiveById(self, task_id):
+        if task_id in self.output_entries:
+            self.output_entries[task_id].SetActive()
+            self.SetTaskActiveById(task_id)
+        else:
+            print "[TaskMinionModel::SetTaskAndOutputActiveById] Missing id:" + str(task_id)
 
     def SetTaskActiveById(self, task_id):
-        self.output_entries[task_id].SetActive()
-        self.task_entries[task_id].SetActive()
+        if task_id in self.task_entries:
+            self.task_entries[task_id].SetActive()
+        else:
+            print "[TaskMinionModel::SetTaskActiveById] Missing id:" + str(task_id)
 
     def SetTaskInactiveById(self, task_id):
-        self.task_entries[task_id].SetInactive()
+        if task_id in self.task_entries:
+            self.task_entries[task_id].SetInactive()
+        else:
+            print "[TaskMinionModel::SetTaskInactiveById] Missing id:" + str(task_id)
 
     def GetTaskEntryCount(self):
         return len(self.task_entries)

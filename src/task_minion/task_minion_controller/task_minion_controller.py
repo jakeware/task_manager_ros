@@ -37,9 +37,11 @@ class TaskMinionController:
     def SetTaskActivity(self):
         if self.last_active_index != self.active_index:
             last_active_task = self.GetTaskByIndex(self.last_active_index)
-            self.SetTaskAndSubTreeActivity(self.view.SetTaskInactiveById, last_active_task)
+            self.view.SetTaskInactiveById(last_active_task.id)
+            self.SetSubTreeActivity(self.view.SetTaskInactiveById, last_active_task.children)
             active_task = self.GetTaskByIndex(self.active_index)
-            self.SetTaskAndSubTreeActivity(self.view.SetTaskActiveById, active_task) 
+            self.view.SetTaskAndOutputActiveById(active_task.id)
+            self.SetSubTreeActivity(self.view.SetTaskActiveById, active_task.children) 
 
     def HandleUp(self, event):
         print "HandleUp"
@@ -54,11 +56,6 @@ class TaskMinionController:
         self.active_index = min(self.active_index + 1, self.view.GetTaskEntryCount() - 1)
         print "active_index: " + str(self.active_index)
         self.SetTaskActivity()
-
-    def SetTaskAndSubTreeActivity(self, set_activity_by_id, task):
-        set_activity_by_id(task.id)
-        if task.children:
-            self.SetSubTreeActivity(set_activity_by_id, task.children)
 
     def SetSubTreeActivity(self, set_activity_by_id, task_subtree):
         for task_id, task in task_subtree.iteritems():
