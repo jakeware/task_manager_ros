@@ -163,7 +163,7 @@ class TaskMinionController:
             print "group: " + group
             print "dependencies: " + "[%s]" % ", ".join(map(str, dependencies))
 
-            process_task = Task()
+            process_task = TaskConfig()
             process_task.name = name
             process_task.command = command
             process_task.group = group
@@ -184,7 +184,7 @@ class TaskMinionController:
             time.sleep(0.2)
 
         # check if the master config was empty
-        if not self.model.HasTaskTree():
+        if not self.model.HasTasks():
             print "No processes registered with master"
             print "Loading configuration from yaml file"
             config_path = "/home/fla/task_master_ws/src/task_minion/cfg/process_config.yaml"

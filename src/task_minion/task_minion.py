@@ -46,8 +46,7 @@ class TaskMinion:
         return command_msg
 
     def ConvertFromRosProcessCommand(self, command_msg):
-        process_task = Task()
-        process_task.id = command_msg.id
+        process_task = TaskConfig(command_msg.id)
         process_task.name = command_msg.name
         process_task.command = command_msg.command
         process_task.group = command_msg.group
@@ -65,8 +64,7 @@ class TaskMinion:
         return process_task_list
 
     def ConvertFromRosProcessStatus(self, status_msg):
-        task_status = TaskStatus()
-        task_status.id = status_msg.id
+        task_status = TaskStatus(status_msg.id)
         task_status.load = status_msg.load
         task_status.memory = status_msg.memory
         task_status.stdout = status_msg.stdout
