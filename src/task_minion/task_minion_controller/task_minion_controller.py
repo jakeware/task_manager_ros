@@ -34,26 +34,35 @@ class TaskMinionController:
         self.root.bind('<Control-s>', self.HandleStart)
         self.root.bind('<Control-k>', self.HandleStop)
 
-    def UpdateTaskActivity(self):
+    def SetTaskActivity(self):
         if self.last_active_index != self.active_index:
             last_active_task = self.GetTaskByIndex(self.last_active_index)
             self.SetTaskAndSubTreeActivity(self.view.SetTaskInactiveById, last_active_task)
             active_task = self.GetTaskByIndex(self.active_index)
             self.SetTaskAndSubTreeActivity(self.view.SetTaskActiveById, active_task)
 
+    def SetTaskOutput(self):
+        active_task_id = self.view.TaskIndexToId(self.active_index)
+        print "active_task_id:" + str(active_task_id)
+        active_task_status = self.model.GetTaskStatusById(active_task_id)
+        if active_task_status:
+            self.view.SetTaskOutput(active_task_status.stdout)
+
     def HandleUp(self, event):
         print "HandleUp"
         self.last_active_index = self.active_index
         self.active_index = max(self.active_index - 1, 0)
         print "active_index: " + str(self.active_index)
-        self.UpdateTaskActivity()
+        self.SetTaskActivity()
+        self.SetTaskOutput()
 
     def HandleDown(self, event):
         print "HandleDown"
         self.last_active_index = self.active_index
         self.active_index = min(self.active_index + 1, self.view.GetTaskEntryCount() - 1)
         print "active_index: " + str(self.active_index)
-        self.UpdateTaskActivity()
+        self.SetTaskActivity()
+        self.SetTaskOutput()
 
     def SetTaskAndSubTreeActivity(self, set_activity_by_id, task):
         set_activity_by_id(task.id)

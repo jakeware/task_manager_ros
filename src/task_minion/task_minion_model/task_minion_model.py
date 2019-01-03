@@ -47,7 +47,10 @@ class TaskMinionModel:
         return self.FindTaskById(task_id, self.task_tree)
 
     def GetTaskStatusById(self, task_id):
-        return self.task_statuses[task_id]
+        if task_id in self.task_statuses:
+            return self.task_statuses[task_id]
+        else:
+            print "[TaskMinionModel::GetTaskStatusById] Missing id:" + str(task_id)
 
     def GetTaskTree(self, process_task_list):
         self.task_tree = {}

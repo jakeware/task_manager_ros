@@ -10,27 +10,37 @@ class HeaderEntry:
 
         self.name_text = Text(self.master_frame, height=1, width=10, highlightthickness=0, borderwidth=1, wrap='none')
         self.name_text.pack(side=LEFT)
+        self.name_text.tag_configure("center", justify='center')
         self.name_text.insert('1.0', 'Name')
+        self.name_text.tag_add("center", "1.0", END)
         self.name_text.config(state='disabled')
         
         self.status_text = Text(self.master_frame, height=1, width=10, highlightthickness=0, borderwidth=1, wrap='none')
         self.status_text.pack(side=LEFT)
+        self.status_text.tag_configure("center", justify='center')
         self.status_text.insert('1.0', 'Status')
+        self.status_text.tag_add("center", "1.0", END)
         self.status_text.config(state='disabled')
         
         self.load_text = Text(self.master_frame, height=1, width=10, highlightthickness=0, borderwidth=1, wrap='none')
         self.load_text.pack(side=LEFT)
+        self.load_text.tag_configure("center", justify='center')
         self.load_text.insert('1.0', 'Load')
+        self.load_text.tag_add("center", "1.0", END)
         self.load_text.config(state='disabled')
         
         self.memory_text = Text(self.master_frame, height=1, width=10, highlightthickness=0, borderwidth=1, wrap='none')
         self.memory_text.pack(side=LEFT)
+        self.memory_text.tag_configure("center", justify='center')
         self.memory_text.insert('1.0', 'Memory')
+        self.memory_text.tag_add("center", "1.0", END)
         self.memory_text.config(state='disabled')
         
         self.message_text = Text(self.master_frame, height=1, highlightthickness=0, borderwidth=1, wrap='none')
         self.message_text.pack(side=LEFT,fill=X, expand=1)
+        self.message_text.tag_configure("center", justify='center')
         self.message_text.insert('1.0', 'Message')
+        self.message_text.tag_add("center", "1.0", END)
         self.message_text.config(state='disabled')
 
 class TaskEntry:
@@ -106,11 +116,11 @@ class TaskMinionView:
         self.task_order.append(task_id)
 
     def SetTaskActiveByIndex(self, task_index):
-        task_id = self.task_order[task_index]
+        task_id = TaskIndexToId(task_index)
         self.SetTaskActiveById(task_id)
 
     def SetTaskInactiveByIndex(self, task_index):
-        task_id = self.task_order[task_index]
+        task_id = TaskIndexToId(task_index)
         self.SetTaskInactiveById(task_id)
 
     def SetTaskActiveById(self, task_id):
@@ -123,7 +133,10 @@ class TaskMinionView:
         return len(self.task_entries)
 
     def TaskIndexToId(self, task_index):
-        return self.task_order[task_index]
+        if task_index < len(self.task_order):
+            return self.task_order[task_index]
+        else:
+            print "[TaskMinionModel::TaskIndexToId] Index out of bounds:" + str(task_index)
 
     def SetTaskLoad(self, task_id, task_load):
         if task_id in self.task_entries:
@@ -138,3 +151,9 @@ class TaskMinionView:
             task_entry.SetTaskMemory(task_memory)
         else:
             print "[TaskMinionModel::SetTaskMemory] Missing id:" + str(task_id)
+
+    def SetTaskOutput(self, task_stdout):
+        self.output_text.config(state='normal')
+        self.output_text.delete('1.0', END)
+        self.output_text.insert('1.0', task_stdout)
+        self.output_text.config(state='disabled')
