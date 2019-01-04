@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Copyright 2018 Massachusetts Institute of Technology
 
 import rospy
@@ -6,12 +5,12 @@ from std_msgs.msg import String
 from task_master.msg import *
 from task_master.srv import *
 
-from task_minion_controller.task_minion_controller import *
-from task_minion_model.task_minion_model import *
+from task_minion_model import *
+from task_minion_controller import *
 
-class TaskMinion(object):
+class TaskMinionRos(object):
     def __init__(self):
-        print "TaskMinion::Constructor"
+        print "TaskMinionRos::Constructor"
         self.controller = TaskMinionController()
         self.controller.SetRequestRegisterCommandCallback(self.RequestRegisterCommand)
         self.controller.SetSendExecuteCommandCallback(self.SendExecuteCommand)
@@ -27,7 +26,7 @@ class TaskMinion(object):
             print "RegisterCommand service call failed: %s"%e
 
     def SendExecuteCommand(self, process_id, command):
-        print "[TaskMinion::SendExecuteCommand] Called for id:" + str(process_id) + " with command:" + str(command)
+        print "[TaskMinionRos::SendExecuteCommand] Called for id:" + str(process_id) + " with command:" + str(command)
         execute_command = task_master.msg.ExecuteCommand()
         execute_command.id = process_id
         execute_command.command = command
@@ -72,27 +71,21 @@ class TaskMinion(object):
         return task_status
 
     def ProcessConfigCallback(self, config_msg):
-        # print "TaskMinion::ProcessConfigCallback"
+        print "TaskMinionRos::ProcessConfigCallback"
         if not self.controller.ReceivedMasterProcessConfig():
             process_task_list = self.ConvertFromRosProcessConfig(config_msg)
             self.controller.SetMasterProcessConfig(process_task_list)
 
     def ProcessStatusCallback(self, status_msg):
-        # print "TaskMinion::TaskStatusCallback"
+        print "TaskMinionRos::TaskStatusCallback"
         task_status = self.ConvertFromRosProcessStatus(status_msg)
         self.controller.SetModelTaskStatus(task_status)
 
     def Run(self):
-        print "TaskMinion::Run"
-        rospy.loginfo("Starting TaskMinion\n")
+        print "TaskMinionRos::Run"
+        rospy.loginfo("Starting TaskMinionRos\n")
         rospy.Subscriber("/task_master/process_config", task_master.msg.ProcessConfig, self.ProcessConfigCallback)
         rospy.Subscriber("/task_master/process_status", task_master.msg.ProcessStatus, self.ProcessStatusCallback)
         self.execute_command_publisher = rospy.Publisher('/task_master/execute_command', task_master.msg.ExecuteCommand, queue_size=10)
 
         self.controller.Run()
-
-if __name__ == '__main__':
-    print "check"
-    rospy.init_node("task_minion")
-    task_minion = TaskMinion()
-    task_minion.Run()

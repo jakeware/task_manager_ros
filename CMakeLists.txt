@@ -25,12 +25,12 @@ find_package(catkin REQUIRED COMPONENTS ${REQ_CATKIN_PKGS})
 catkin_python_setup()
 
 catkin_package(
-  INCLUDE_DIRS src
-  LIBRARIES ${PROJECT_NAME}
+  INCLUDE_DIRS
+  LIBRARIES
   CATKIN_DEPENDS ${REQ_CATKIN_PKGS}
   DEPENDS
   )
 
 catkin_install_python(PROGRAMS 
-  src/task_minion/task_minion.py
+  src/task_minion/task_minion_ros_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

@@ -11,8 +11,8 @@ import threading
 from Tkinter import *
 from ScrolledText import ScrolledText
 
-from task_minion_view.task_minion_view import *
-from task_minion_model.task_minion_model import *
+from task_minion_view import *
+from task_minion_model import *
 
 def signal_handler(sig, frame):
         print('[TaskMinion] Caught SIGINT. Exiting...')
