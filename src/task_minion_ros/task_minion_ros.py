@@ -5,8 +5,8 @@ from std_msgs.msg import String
 from task_master.msg import *
 from task_master.srv import *
 
-from task_minion_model import *
-from task_minion_controller import *
+from task_minion.task_minion_model import *
+from task_minion.task_minion_controller import *
 
 class TaskMinionRos(object):
     def __init__(self):
@@ -71,13 +71,13 @@ class TaskMinionRos(object):
         return task_status
 
     def ProcessConfigCallback(self, config_msg):
-        print "TaskMinionRos::ProcessConfigCallback"
+        # print "TaskMinionRos::ProcessConfigCallback"
         if not self.controller.ReceivedMasterProcessConfig():
             process_task_list = self.ConvertFromRosProcessConfig(config_msg)
             self.controller.SetMasterProcessConfig(process_task_list)
 
     def ProcessStatusCallback(self, status_msg):
-        print "TaskMinionRos::TaskStatusCallback"
+        # print "TaskMinionRos::TaskStatusCallback"
         task_status = self.ConvertFromRosProcessStatus(status_msg)
         self.controller.SetModelTaskStatus(task_status)
 

@@ -32,5 +32,5 @@ catkin_package(
   )
 
 catkin_install_python(PROGRAMS 
-  src/task_minion/task_minion_ros_node.py
+  src/task_minion_ros/task_minion_ros_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
