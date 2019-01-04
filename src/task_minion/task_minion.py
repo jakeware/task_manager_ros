@@ -67,7 +67,7 @@ class TaskMinion(object):
         task_status = TaskStatus(status_msg.id)
         task_status.load = status_msg.load
         task_status.memory = status_msg.memory
-        task_status.stdout = status_msg.stdout
+        task_status.stdout_delta = status_msg.stdout
 
         return task_status
 

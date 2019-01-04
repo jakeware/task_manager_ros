@@ -123,6 +123,12 @@ class OutputEntry(object):
         self.output_text.see(END)
         self.output_text.config(state='disabled')
 
+    def SetTaskOutputDelta(self, task_output):
+        self.output_text.config(state='normal')
+        self.output_text.insert(END, task_output)
+        self.output_text.see(END)
+        self.output_text.config(state='disabled')
+
 class TaskMinionView(object):
     def __init__(self, root):
         self.task_entries = {}  # dictionary (indexed by task_id) of TaskEntries
@@ -189,5 +195,12 @@ class TaskMinionView(object):
         if task_id in self.output_entries:
             output_entry = self.output_entries[task_id]
             output_entry.SetTaskOutput(task_output)
+        else:
+            print "[TaskMinionModel::SetTaskOutputById] Missing id:" + str(task_id)
+
+    def SetTaskOutputDeltaById(self, task_id, task_output_delta):
+        if task_id in self.output_entries:
+            output_entry = self.output_entries[task_id]
+            output_entry.SetTaskOutputDelta(task_output_delta)
         else:
             print "[TaskMinionModel::SetTaskOutputById] Missing id:" + str(task_id)

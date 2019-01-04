@@ -7,6 +7,7 @@ class TaskStatus(object):
         self.load = 0
         self.memory = 0
         self.stdout = ""
+        self.stdout_delta = ""
         # self.message = ""
 
 class TaskConfig(object):
@@ -131,7 +132,8 @@ class TaskMinionModel(object):
         task.status.id = task_status.id
         task.status.load = task_status.load
         task.status.memory = task_status.memory
-        task.status.stdout = task.status.stdout + task_status.stdout
+        task.status.stdout_delta = task_status.stdout_delta
+        task.status.stdout = task.status.stdout + task_status.stdout_delta
         self.task_status_callback(task.status)
         self.UpdateTaskStatus(task.parent)
 

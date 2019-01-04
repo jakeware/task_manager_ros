@@ -5,6 +5,8 @@ import os
 import yaml
 import time
 import signal
+import Queue
+import threading
 
 from Tkinter import *
 from ScrolledText import ScrolledText
@@ -23,6 +25,7 @@ class TaskMinionController(object):
         self.model = TaskMinionModel()
         self.model.SetTaskStatusCallback(self.TaskStatusChanged)
         self.model.SetProcessConfigCallback(self.TasksChanged)
+        self.task_status_queue = Queue.Queue()
 
         self.received_master_process_config = False  # have we received a process config from TaskMaster yet?
         self.active_index = 0
@@ -92,7 +95,8 @@ class TaskMinionController(object):
     def TaskStatusChanged(self, task_status):
         self.view.SetTaskLoadById(task_status.id, task_status.load)
         self.view.SetTaskMemoryById(task_status.id, task_status.memory)
-        self.view.SetTaskOutputById(task_status.id, task_status.stdout)
+        self.view.SetTaskOutputDeltaById(task_status.id, task_status.stdout_delta)
+        task_status.stdout_delta = ""
 
     def AddTaskEntriesDepthFirst(self, tasks, depth=0):
         for task in tasks.itervalues():
@@ -107,7 +111,7 @@ class TaskMinionController(object):
         self.AddTaskEntriesDepthFirst(tasks)
 
     def SetModelTaskStatus(self, task_status):
-        self.model.SetTaskStatus(task_status)
+        self.task_status_queue.put(task_status)
 
     def SetRequestRegisterCommandCallback(self, function):
         self.RequestRegisterCommand = function
@@ -175,6 +179,16 @@ class TaskMinionController(object):
     def SetSendExecuteCommandCallback(self, callback):
         self.send_execute_command_callback = callback
 
+    def Update(self):
+        while self.task_status_queue.qsize(  ):
+            try:
+                task_status = self.task_status_queue.get(0)
+                self.model.SetTaskStatus(task_status)
+            except Queue.Empty:
+                pass
+
+        self.root.after(100, self.Update)
+
     def Run(self):
         signal.signal(signal.SIGINT, signal_handler)
 
@@ -191,4 +205,5 @@ class TaskMinionController(object):
             registered_process_task_list = self.RegisterCommands(process_task_list)
             self.model.SetProcessTaskList(registered_process_task_list)
 
-        self.view.root.mainloop()
+        self.root.after(0, self.Update())
+        self.root.mainloop()
