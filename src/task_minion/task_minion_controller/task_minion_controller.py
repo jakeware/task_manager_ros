@@ -16,7 +16,7 @@ def signal_handler(sig, frame):
         print('[TaskMinion] Caught SIGINT. Exiting...')
         sys.exit(0)
 
-class TaskMinionController:
+class TaskMinionController(object):
     def __init__(self):
         self.root = Tk()
         self.view = TaskMinionView(self.root)
@@ -58,13 +58,13 @@ class TaskMinionController:
         self.SetTaskActivity()
 
     def SetSubTreeActivity(self, set_activity_by_id, task_subtree):
-        for task_id, task in task_subtree.iteritems():
+        for task in task_subtree.itervalues():
             set_activity_by_id(task.id)
             if task.children:
                 self.SetSubTreeActivity(set_activity_by_id, task.children)
 
     def SendSubTreeExecuteCommand(self, command, task_subtree):
-        for task_id, task in task_subtree.iteritems():
+        for task in task_subtree.itervalues():
             self.send_execute_command_callback(task.id, command)
             if task.children:
                 self.SendSubTreeExecuteCommand(command, task.children)

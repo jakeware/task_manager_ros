@@ -3,7 +3,7 @@
 from Tkinter import *
 from ScrolledText import ScrolledText
 
-class HeaderEntry:
+class HeaderEntry(object):
     def __init__(self, parent_frame):
         self.master_frame = Frame(parent_frame)
         self.master_frame.grid(row=0, column=0, sticky=NSEW)
@@ -43,7 +43,7 @@ class HeaderEntry:
         self.message_text.tag_add("center", "1.0", END)
         self.message_text.config(state='disabled')
 
-class TaskEntry:
+class TaskEntry(object):
     def __init__(self, parent_frame, task_id, task_name, task_depth):
         self.task_id = task_id
         
@@ -99,7 +99,7 @@ class TaskEntry:
         self.memory_text.insert('1.0', str(task_memory))
         self.memory_text.config(state='disabled')
 
-class OutputEntry:
+class OutputEntry(object):
     def __init__(self, parent_frame, task_id):
         self.task_id = task_id
 
@@ -123,7 +123,7 @@ class OutputEntry:
         self.output_text.see(END)
         self.output_text.config(state='disabled')
 
-class TaskMinionView:
+class TaskMinionView(object):
     def __init__(self, root):
         self.task_entries = {}  # dictionary (indexed by task_id) of TaskEntries
         self.output_entries = {}  # dictionary (indexed by task_id) of OutputEntries

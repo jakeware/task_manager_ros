@@ -9,7 +9,7 @@ from task_master.srv import *
 from task_minion_controller.task_minion_controller import *
 from task_minion_model.task_minion_model import *
 
-class TaskMinion:
+class TaskMinion(object):
     def __init__(self):
         print "TaskMinion::Constructor"
         self.controller = TaskMinionController()
