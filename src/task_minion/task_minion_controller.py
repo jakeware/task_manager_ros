@@ -19,13 +19,14 @@ def signal_handler(sig, frame):
         sys.exit(0)
 
 class TaskMinionController(object):
-    def __init__(self):
+    def __init__(self, task_config_path):
         self.root = Tk()
         self.view = TaskMinionView(self.root)
         self.model = TaskMinionModel()
         self.model.SetTaskStatusCallback(self.TaskStatusChanged)
         self.model.SetProcessConfigCallback(self.TasksChanged)
         self.task_status_queue = Queue.Queue()
+        self.task_config_path = task_config_path
 
         self.received_master_process_config = False  # have we received a process config from TaskMaster yet?
         self.active_index = 0
@@ -199,9 +200,8 @@ class TaskMinionController(object):
         # check if the master config was empty
         if not self.model.HasTasks():
             print "No processes registered with master"
-            print "Loading configuration from yaml file"
-            config_path = "/home/fla/task_master_ws/src/task_minion/cfg/process_config.yaml"
-            process_task_list = self.LoadYamlConfiguration(config_path)
+            print "Loading configuration from path: " + self.task_config_path
+            process_task_list = self.LoadYamlConfiguration(self.task_config_path)
             registered_process_task_list = self.RegisterCommands(process_task_list)
             self.model.SetProcessTaskList(registered_process_task_list)
 

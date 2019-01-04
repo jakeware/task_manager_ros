@@ -11,7 +11,9 @@ from task_minion.task_minion_controller import *
 class TaskMinionRos(object):
     def __init__(self):
         print "TaskMinionRos::Constructor"
-        self.controller = TaskMinionController()
+        self.task_config_path = rospy.get_param('~task_config_path')
+        print self.task_config_path
+        self.controller = TaskMinionController(self.task_config_path)
         self.controller.SetRequestRegisterCommandCallback(self.RequestRegisterCommand)
         self.controller.SetSendExecuteCommandCallback(self.SendExecuteCommand)
 
