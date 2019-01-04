@@ -22,7 +22,7 @@ class TaskMinionController:
         self.view = TaskMinionView(self.root)
         self.model = TaskMinionModel()
         self.model.SetTaskStatusCallback(self.TaskStatusChanged)
-        self.model.SetProcessConfigCallback(self.TaskTreeChanged)
+        self.model.SetProcessConfigCallback(self.TasksChanged)
 
         self.received_master_process_config = False  # have we received a process config from TaskMaster yet?
         self.active_index = 0
@@ -89,23 +89,22 @@ class TaskMinionController:
         else:
             self.SendSubTreeExecuteCommand(0, active_task.children)
 
-    def TaskStatusChanged(self, task_id):
-        if task_id < 0:
-            print "[TaskMinionController] TaskStatusChanged for id:" + str(task_id)
-        task_status = self.model.GetTaskStatusById(task_id)
+    def TaskStatusChanged(self, task_status):
         self.view.SetTaskLoadById(task_status.id, task_status.load)
         self.view.SetTaskMemoryById(task_status.id, task_status.memory)
         self.view.SetTaskOutputById(task_status.id, task_status.stdout)
 
-    def AddTaskEntriesDepthFirst(self, task_subtree, depth=0):
-        for task_id, task in task_subtree.iteritems():
-            self.view.AddTask(task.id, task.name, depth)
+    def AddTaskEntriesDepthFirst(self, tasks, depth=0):
+        for task in tasks.itervalues():
+            if depth == 0 and task.parent:
+                continue
+            self.view.AddTask(task.id, task.config.name, depth)
             if task.children:
-                self.AddTaskEntriesDepthFirst(task.children, depth + 1)
+                self.AddTaskEntriesDepthFirst(task.children, depth+1)
 
-    def TaskTreeChanged(self, task_tree):
-        print "[TaskMinionController] ProcessConfigChanged"
-        self.AddTaskEntriesDepthFirst(task_tree)
+    def TasksChanged(self, tasks):
+        print "[TaskMinionController] TasksChanged"
+        self.AddTaskEntriesDepthFirst(tasks)
 
     def SetModelTaskStatus(self, task_status):
         self.model.SetTaskStatus(task_status)

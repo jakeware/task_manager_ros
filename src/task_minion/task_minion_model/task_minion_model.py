@@ -21,7 +21,7 @@ class Task(object):
     def __init__(self, task_id=-1):
         self.id = task_id
         self.parent = None  # parent task
-        self.children = {}  # dictionary (indexed by process and group id) of all Tasks
+        self.children = {}  # dictionary (indexed by process and group id) of child Tasks
         self.status = TaskStatus(task_id)
         self.config = TaskConfig(task_id)
 
@@ -39,7 +39,7 @@ class TaskMinionModel(object):
         return None
 
     def GetTaskById(self, task_id):
-        if TaskExists(task_id):
+        if self.TaskExists(task_id):
             return self.tasks[task_id]
         return None
 
@@ -78,48 +78,31 @@ class TaskMinionModel(object):
                 group_task = self.FindTaskByName(conf.group)
                 # if group already exists in tree, set parent and add process to group
                 if group_task:
-                    print "Found Group: " + group_task.config.name
                     task.parent = group_task
                     group_task.AddChild(task)
                 # otherwise, add new group to tree with process as child
                 else:
-                    print "Missing Group: " + conf.group
-                    print "Adding Group ID: " + str(group_id)
                     new_group_task = self.AddTaskFromId(group_id)
-                    if not new_group_task:
-                        print "Got empty group task!!!!"
-                    print "Added Group ID: " + str(new_group_task.id)
-                    if new_group_task.id in self.tasks:
-                        print "  In Tasks"
-                    else:
-                        print "  Not In Tasks"
                     group_id = group_id - 1
-                    print "Reprint Group ID: " + str(new_group_task.id)
                     new_group_task.config.name = conf.group
-                    print "Check Name: " + self.tasks[new_group_task.id].config.name
                     task.parent = new_group_task
-                    print "Check Parent: " + self.tasks[task.id].parent.config.name
                     new_group_task.AddChild(task)
-                    print "Check Children:"
-                    for child_task in new_group_task.children.itervalues():
-                        "Child: { " + str(child_task.id) + ", " + child_task.config.name + " }"
-                        print "\n"
 
         print "[TaskMinionModel::GetProcessGroups] Task Tree:"
         self.PrintTasks()
 
     def PrintTasks(self):
-        print "Number of Tasks: " + str(len(self.tasks))
+        print "Number of Tasks: " + str(len(self.tasks)) + "\n"
         for task in self.tasks.itervalues():
             print "ID: " + str(task.config.id)
             print "Name: " + task.config.name
             if task.config.group:
                 print "Group: " + task.config.group
             if task.parent:
-                print "Parent: { " + str(task.parent.id) + ", " + task.parent.config.name + " }"
+                print "Parent: {" + str(task.parent.id) + ", " + task.parent.config.name + "}"
             print "Children:"
             for child_task in task.children.itervalues():
-                "Child: { " + str(child_task.id) + ", " + child_task.config.name + " }"
+                print "Child: {" + str(child_task.id) + ", " + child_task.config.name + "}"
             print "\n"
 
     def SetProcessTaskList(self, process_task_list):
@@ -130,7 +113,7 @@ class TaskMinionModel(object):
         print "[TaskMinionModel::SetProcessTaskList] Loading new process task list"
         self.GetTasksFromProcessConfigList(process_task_list)
 
-        self.process_task_list_callback(self.task_tree)
+        self.process_task_list_callback(self.tasks)
 
     def HasTasks(self):
         if self.tasks:
@@ -149,21 +132,23 @@ class TaskMinionModel(object):
         task.status.load = task_status.load
         task.status.memory = task_status.memory
         task.status.stdout = task.status.stdout + task_status.stdout
-        self.task_status_callback(task_status.id)
-        self.UpdateTaskStatusById(task.parent)
+        self.task_status_callback(task.status)
+        self.UpdateTaskStatus(task.parent)
 
-    def UpdateTaskStatusById(self, task_id):
-        if task.parent:
+    def UpdateTaskStatus(self, task):
+        if not task:
             return
 
-        task = self.GetTaskById(task_id)
         load_total = 0
         memory_total = 0
-        for child_task in child_task.children.itervalues():
-            load_total = load_total + task.load
-            memory_total = memory_total + task.memory
-        self.task_status_callback(task.id)
-        self.UpdateTaskStatusById(task.parent)
+        for child_task in task.children.itervalues():
+            load_total = load_total + child_task.status.load
+            memory_total = memory_total + child_task.status.memory
+        task.status.load = load_total
+        task.status.memory = memory_total
+        self.task_status_callback(task.status)
+
+        self.UpdateTaskStatus(task.parent)
 
     def SetProcessConfigCallback(self, callback):
         self.process_task_list_callback = callback
