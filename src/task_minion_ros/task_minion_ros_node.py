@@ -5,6 +5,6 @@ import rospy
 from task_minion_ros import *
 
 if __name__ == '__main__':
-    rospy.init_node("task_minion")
+    rospy.init_node("task_minion_ros_node")
     task_minion_ros = TaskMinionRos()
     task_minion_ros.Run()

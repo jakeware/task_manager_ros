@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>task_minion</name>
+  <name>task_manager</name>
   <version>1.0.0</version>
-  <description>One process manager to rule them all.  Long live procman.</description>
+  <description>One process manager to rule them all.</description>
 
   <maintainer email="jakeware@mit.edu">Jake Ware</maintainer>
   <author>Jake Ware</author>
@@ -11,4 +11,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <depend>rospy</depend>
+  <depend>std_msgs</depend>
+  <depend>message_generation</depend>
+	<depend>message_runtime</depend>
 </package>

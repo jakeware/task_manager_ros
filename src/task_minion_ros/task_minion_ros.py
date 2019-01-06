@@ -2,8 +2,8 @@
 
 import rospy
 from std_msgs.msg import String
-from task_master.msg import *
-from task_master.srv import *
+from task_manager.msg import *
+from task_manager.srv import *
 
 from task_minion.task_minion_model import *
 from task_minion.task_minion_controller import *
@@ -14,80 +14,80 @@ class TaskMinionRos(object):
         self.task_config_path = rospy.get_param('~task_config_path')
         print self.task_config_path
         self.controller = TaskMinionController(self.task_config_path)
-        self.controller.SetRequestRegisterCommandCallback(self.RequestRegisterCommand)
-        self.controller.SetSendExecuteCommandCallback(self.SendExecuteCommand)
+        self.controller.SetRequestRegisterTaskCallback(self.RequestRegisterTask)
+        self.controller.SetPublishTaskCommandCallback(self.PublishTaskCommand)
 
-    def RequestRegisterCommand(self, process_command):
-        command_msg = self.ConvertToRosProcessCommand(process_command)
-        rospy.wait_for_service('/task_master/register_command')
+    def RequestRegisterTask(self, task_config):
+        task_config_msg = self.ConvertToRosTaskConfig(task_config)
+        rospy.wait_for_service('/task_master/register_task')
         try:
-            register_command = rospy.ServiceProxy('/task_master/register_command', RegisterCommand)
-            res = register_command(command_msg)
+            register_task = rospy.ServiceProxy('/task_master/register_task', RegisterTask)
+            res = register_task(task_config_msg)
             return res.id
         except rospy.ServiceException, e:
-            print "RegisterCommand service call failed: %s"%e
+            print "RegisterTask service call failed: %s"%e
 
-    def SendExecuteCommand(self, process_id, command):
-        print "[TaskMinionRos::SendExecuteCommand] Called for id:" + str(process_id) + " with command:" + str(command)
-        execute_command = task_master.msg.ExecuteCommand()
-        execute_command.id = process_id
-        execute_command.command = command
+    def PublishTaskCommand(self, task_id, command):
+        print "[TaskMinionRos::PublishTaskCommand] Called for id:" + str(task_id) + " with command:" + command
+        task_command = task_manager.msg.TaskCommand()
+        task_command.id = task_id
+        task_command.command = command
 
-        self.execute_command_publisher.publish(execute_command)
+        self.task_command_publisher.publish(task_command)
 
-    def ConvertToRosProcessCommand(self, process_task):
-        command_msg = task_master.msg.ProcessCommand()
-        command_msg.header.stamp = rospy.Time.now()
-        command_msg.id = process_task.id
-        command_msg.name = process_task.name
-        command_msg.command = process_task.command
-        command_msg.group = process_task.group
-        command_msg.dependencies = process_task.dependencies
+    def ConvertToRosTaskConfig(self, task_config):
+        task_config_msg = task_manager.msg.TaskConfig()
+        task_config_msg.header.stamp = rospy.Time.now()
+        task_config_msg.id = task_config.id
+        task_config_msg.name = task_config.name
+        task_config_msg.command = task_config.command
+        task_config_msg.group = task_config.group
+        task_config_msg.dependencies = task_config.dependencies
 
-        return command_msg
+        return task_config_msg
 
-    def ConvertFromRosProcessCommand(self, command_msg):
-        process_task = TaskConfig(command_msg.id)
-        process_task.name = command_msg.name
-        process_task.command = command_msg.command
-        process_task.group = command_msg.group
-        for dep in command_msg.dependencies:
-            process_task.dependencies.append(dep)
+    def ConvertFromRosTaskConfig(self, task_config_msg):
+        task_config = TaskConfig(task_config_msg.id)
+        task_config.name = task_config_msg.name
+        task_config.command = task_config_msg.command
+        task_config.group = task_config_msg.group
+        for dep in task_config_msg.dependencies:
+            task_config.dependencies.append(dep)
 
-        return process_task
+        return task_config
 
-    def ConvertFromRosProcessConfig(self, config_msg):
-        process_task_list = []
-        for proc in config_msg.commands:
-            process_task = self.ConvertFromRosProcessCommand(proc)
-            process_task_list.append(process_task)
+    def ConvertFromRosTaskConfigList(self, task_config_list_msg):
+        task_config_list = []
+        for conf in task_config_list_msg.task_configs:
+            task_config = self.ConvertFromRosTaskConfig(conf)
+            task_config_list.append(task_config)
 
-        return process_task_list
+        return task_config_list
 
-    def ConvertFromRosProcessStatus(self, status_msg):
-        task_status = TaskStatus(status_msg.id)
-        task_status.load = status_msg.load
-        task_status.memory = status_msg.memory
-        task_status.stdout_delta = status_msg.stdout
+    def ConvertFromRosTaskInfo(self, task_info_msg):
+        task_info = TaskInfo(task_info_msg.id)
+        task_info.load = task_info_msg.load
+        task_info.memory = task_info_msg.memory
+        task_info.stdout_delta = task_info_msg.stdout
 
-        return task_status
+        return task_info
 
-    def ProcessConfigCallback(self, config_msg):
-        # print "TaskMinionRos::ProcessConfigCallback"
-        if not self.controller.ReceivedMasterProcessConfig():
-            process_task_list = self.ConvertFromRosProcessConfig(config_msg)
-            self.controller.SetMasterProcessConfig(process_task_list)
+    def TaskConfigListCallback(self, task_config_list_msg):
+        # print "TaskMinionRos::TaskConfigListCallback"
+        if not self.controller.ReceivedMasterTaskConfigList():
+            task_config_list = self.ConvertFromRosTaskConfigList(task_config_list_msg)
+            self.controller.SetMasterTaskConfigList(task_config_list)
 
-    def ProcessStatusCallback(self, status_msg):
+    def TaskInfoCallback(self, task_info_msg):
         # print "TaskMinionRos::TaskStatusCallback"
-        task_status = self.ConvertFromRosProcessStatus(status_msg)
-        self.controller.SetModelTaskStatus(task_status)
+        task_info = self.ConvertFromRosProcessStatus(status_msg)
+        self.controller.SetModelTaskInfo(task_info)
 
     def Run(self):
         print "TaskMinionRos::Run"
         rospy.loginfo("Starting TaskMinionRos\n")
-        rospy.Subscriber("/task_master/process_config", task_master.msg.ProcessConfig, self.ProcessConfigCallback)
-        rospy.Subscriber("/task_master/process_status", task_master.msg.ProcessStatus, self.ProcessStatusCallback)
-        self.execute_command_publisher = rospy.Publisher('/task_master/execute_command', task_master.msg.ExecuteCommand, queue_size=10)
+        rospy.Subscriber("/task_master/task_config_list", task_manager.msg.TaskConfigList, self.TaskConfigListCallback)
+        rospy.Subscriber("/task_master/task_info", task_manager.msg.TaskInfo, self.TaskInfoCallback)
+        self.task_command_publisher = rospy.Publisher('/task_master/task_command', task_manager.msg.TaskCommand, queue_size=10)
 
         self.controller.Run()

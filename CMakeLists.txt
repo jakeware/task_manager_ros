@@ -7,7 +7,7 @@ if (CCACHE_FOUND)
   set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif (CCACHE_FOUND)
 
-project(task_minion)
+project(task_manager)
 
 set(CMAKE_VERBOSE_MAKEFILE FALSE)
 
@@ -19,18 +19,36 @@ endif (NOT CMAKE_BUILD_TYPE)
 # find catkin dependencies
 set(REQ_CATKIN_PKGS   
   rospy
+  std_msgs
+  message_generation
   )
 find_package(catkin REQUIRED COMPONENTS ${REQ_CATKIN_PKGS})
 
 catkin_python_setup()
 
+add_message_files(FILES
+  TaskInfo.msg
+  TaskConfig.msg
+  TaskCommand.msg
+  TaskConfigList.msg
+  )
+
+add_service_files(FILES
+  RegisterTask.srv
+  )
+
+generate_messages(DEPENDENCIES
+  std_msgs
+  )
+
 catkin_package(
   INCLUDE_DIRS
   LIBRARIES
   CATKIN_DEPENDS ${REQ_CATKIN_PKGS}
-  DEPENDS
+  DEPENDS message_runtime
   )
 
 catkin_install_python(PROGRAMS 
   src/task_minion_ros/task_minion_ros_node.py
+  src/task_master_ros/task_master_ros_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

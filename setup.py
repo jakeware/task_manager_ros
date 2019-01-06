@@ -6,7 +6,9 @@ from catkin_pkg.python_setup import generate_distutils_setup
 # fetch values from package.xml
 setup_args = generate_distutils_setup(
     packages=['task_minion',
-              'task_minion_ros'],
+              'task_minion_ros'
+              'task_master'
+              'task_master_ros'],
     package_dir={'': 'src'}
 )
 
