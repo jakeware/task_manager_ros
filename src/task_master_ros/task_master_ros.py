@@ -12,8 +12,10 @@ class TaskMasterRos(object):
         self.task_configs = {}
 
     def RegisterTaskCallback(self, req):
-        print "[TaskMaster::RegisterTaskCallback] Registered id:" + str(self.next_task_id)
         task_id = self.next_task_id
+        self.task_configs[req.task_config.id] = req.task_config
+        print "[TaskMaster::RegisterTaskCallback] Registered task:" + req.task_config.name + " with id:" + str(self.next_task_id)
+
         self.next_task_id = self.next_task_id + 1
         return RegisterTaskResponse(task_id)
 
