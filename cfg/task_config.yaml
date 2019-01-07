@@ -18,6 +18,6 @@ process4:
   - dependencies:
     - process3
 process5:
-  - command: ping 8.8.8.8
+  - command: roslaunch task_manager test_node1.launch
   - dependencies:
     - process4

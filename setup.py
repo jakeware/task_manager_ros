@@ -8,7 +8,8 @@ setup_args = generate_distutils_setup(
     packages=['task_minion',
               'task_minion_ros'
               'task_master'
-              'task_master_ros'],
+              'task_master_ros',
+              'test_nodes'],
     package_dir={'': 'src'}
 )
 
