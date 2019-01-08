@@ -42,3 +42,13 @@ def ConvertFromRosTaskInfo(task_info_msg):
     task_info.stdout_delta = task_info_msg.stdout
 
     return task_info
+
+def ConvertToRosTaskInfo(task_info):
+    task_info_msg = task_manager_ros.msg.TaskInfo()
+    task_info_msg.id = task_info.id
+    task_info_msg.load = task_info.load
+    task_info_msg.memory = task_info.memory
+    task_info_msg.stdout = task_info.stdout
+    task_info_msg.stdout_delta = task_info.stdout_delta
+
+    return task_info_msg

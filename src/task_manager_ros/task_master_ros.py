@@ -12,6 +12,12 @@ class TaskMasterRos(object):
         print "TaskMasterRos::Constructor"
         self.task_master = task_master.TaskMaster()
         self.task_master.SetPublishTaskConfigListCallback(self.PublishTaskConfigList)
+        self.task_master.SetPublishTaskInfoCallback(self.PublishTaskInfo)
+
+    def PublishTaskInfo(self, task_info):
+        print "TaskMasterRos::PublishTaskInfo"
+        task_info_msg = task_manager_ros_utils.ConvertToRosTaskInfo(task_info)
+        self.task_info_pub.publish(task_info_msg)
 
     def RegisterTaskCallback(self, req):
         new_task_id = self.task_master.GetNewTaskId()

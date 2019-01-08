@@ -184,7 +184,7 @@ class TaskMinionController(object):
         while self.task_info_queue.qsize(  ):
             try:
                 task_info = self.task_info_queue.get(0)
-                self.model.SetTaskStatus(task_info)
+                self.model.SetTaskInfo(task_info)
             except Queue.Empty:
                 pass
 
