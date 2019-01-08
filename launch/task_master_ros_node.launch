@@ -1,9 +1,9 @@
 <launch>
   <arg name="load_params" default="true" />
 
-  <node pkg="task_manager" type="task_master_ros_node.py" name="task_master" output="screen">
+  <node pkg="task_manager_ros" type="task_master_ros_node.py" name="task_master" output="screen">
       <!-- params -->
-      <!-- rosparam command="load" if="$(arg load_params)" file="$(find task_manager)/cfg/task_master.yaml"-->
+      <!-- rosparam command="load" if="$(arg load_params)" file="$(find task_manager_ros)/cfg/task_master.yaml"-->
 
       <!-- input remaps -->
 

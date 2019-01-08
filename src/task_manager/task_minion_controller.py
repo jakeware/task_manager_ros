@@ -11,8 +11,8 @@ import threading
 from Tkinter import *
 from ScrolledText import ScrolledText
 
-from task_minion_view import *
-from task_minion_model import *
+from task_manager import task_minion_view
+from task_manager import task_minion_model
 
 def signal_handler(sig, frame):
         print('[TaskMinion] Caught SIGINT. Exiting...')
@@ -21,8 +21,8 @@ def signal_handler(sig, frame):
 class TaskMinionController(object):
     def __init__(self, task_config_path):
         self.root = Tk()
-        self.view = TaskMinionView(self.root)
-        self.model = TaskMinionModel()
+        self.view = task_minion_view.TaskMinionView(self.root)
+        self.model = task_minion_model.TaskMinionModel()
         self.model.SetTaskInfoChangedCallback(self.TaskInfoChanged)
         self.model.SetTaskConfigListChangedCallback(self.TasksChanged)
         self.task_info_queue = Queue.Queue()
@@ -167,7 +167,7 @@ class TaskMinionController(object):
             print "group: " + group
             print "dependencies: " + "[%s]" % ", ".join(map(str, dependencies))
 
-            task_config = TaskConfig()
+            task_config = task_minion_model.TaskConfig()
             task_config.name = name
             task_config.command = command
             task_config.group = group

@@ -1,11 +1,11 @@
 <launch>
   <arg name="load_params" default="true" />
-  <arg name="task_config_path" default="$(find task_manager)/cfg/task_config.yaml"/>
+  <arg name="task_config_path" default="$(find task_manager_ros)/cfg/task_config.yaml"/>
 
-  <node pkg="task_manager" type="task_minion_ros_node.py" name="task_minion" output="screen">
+  <node pkg="task_manager_ros" type="task_minion_ros_node.py" name="task_minion" output="screen">
       <!-- params -->
       <param name="task_config_path" value="$(arg task_config_path)" />
-      <rosparam command="load" if="$(arg load_params)" file="$(find task_manager)/cfg/task_minion.yaml"/>
+      <rosparam command="load" if="$(arg load_params)" file="$(find task_manager_ros)/cfg/task_minion.yaml"/>
 
       <!-- input remaps -->
 

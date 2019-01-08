@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>task_manager</name>
+  <name>task_manager_ros</name>
   <version>1.0.0</version>
   <description>One process manager to rule them all.</description>
 

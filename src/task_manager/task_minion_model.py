@@ -116,6 +116,12 @@ class TaskMinionModel(object):
 
         self.task_config_list_changed(self.tasks)
 
+    def GetTaskConfigList(self):
+        task_config_list = []
+        for task in self.tasks.itervalues():
+            task_config_list.append(task.config)
+        return task_config_list
+
     def HasTasks(self):
         if self.tasks:
             return True
@@ -124,7 +130,7 @@ class TaskMinionModel(object):
     def TaskExists(self, task_id):
         if task_id in self.tasks:
             return True
-        print "[TaskMinionModel::GetTaskById] Missing id:" + str(task_id)
+        print "[TaskMinionModel::TaskExists] Missing id:" + str(task_id)
         return False
 
     def SetTaskInfo(self, task_info):

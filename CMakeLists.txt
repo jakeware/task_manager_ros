@@ -7,7 +7,7 @@ if (CCACHE_FOUND)
   set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
 endif (CCACHE_FOUND)
 
-project(task_manager)
+project(task_manager_ros)
 
 set(CMAKE_VERBOSE_MAKEFILE FALSE)
 
@@ -49,7 +49,7 @@ catkin_package(
   )
 
 catkin_install_python(PROGRAMS 
-  src/task_minion_ros/task_minion_ros_node.py
-  src/task_master_ros/task_master_ros_node.py
+  src/task_manager_ros/task_minion_ros_node.py
+  src/task_manager_ros/task_master_ros_node.py
   src/test_nodes/test_node1.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
