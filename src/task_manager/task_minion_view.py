@@ -77,17 +77,36 @@ class TaskEntry(object):
 
     def SetActive(self):
         self.name_text['bg'] = self.bg_color_active
-        self.status_text['bg'] = self.bg_color_active
+        status_text = self.status_text.get("1.0",END)
+        if status_text.isspace():
+            self.status_text['bg'] = self.bg_color_active
+            self.status_text['fg'] = self.fg_color
         self.load_text['bg'] = self.bg_color_active
         self.memory_text['bg'] = self.bg_color_active
         self.message_text['bg'] = self.bg_color_active
 
     def SetInactive(self):
         self.name_text['bg'] = self.bg_color_inactive
-        self.status_text['bg'] = self.bg_color_inactive
+        status_text = self.status_text.get("1.0",END)
+        if status_text.isspace():
+            self.status_text['bg'] = self.bg_color_inactive
+            self.status_text['fg'] = self.fg_color
         self.load_text['bg'] = self.bg_color_inactive
         self.memory_text['bg'] = self.bg_color_inactive
         self.message_text['bg'] = self.bg_color_inactive
+
+    def SetTaskStatus(self, task_status):
+        self.status_text.config(state='normal')
+        self.status_text.delete('1.0', END)
+        self.status_text.insert('1.0', task_status)
+        self.status_text.tag_configure("center", justify='center')
+        self.status_text.tag_add("center", 1.0, END)
+        if task_status == 'running':
+            self.status_text['bg'] = 'green'
+        if task_status == 'stopped':
+            self.status_text['bg'] = 'red'
+        self.status_text['fg'] = 'black'
+        self.status_text.config(state='disabled')
 
     def SetTaskLoad(self, task_load):
         self.load_text.config(state='normal')
@@ -184,6 +203,13 @@ class TaskMinionView(object):
             return self.task_order[task_index]
         else:
             print "[TaskMinionModel::TaskIndexToId] Index out of bounds:" + str(task_index)
+
+    def SetTaskStatusById(self, task_id, task_status):
+        if task_id in self.task_entries:
+            task_entry = self.task_entries[task_id]
+            task_entry.SetTaskStatus(task_status)
+        else:
+            print "[TaskMinionModel::SetTaskLoadById] Missing id:" + str(task_id)
 
     def SetTaskLoadById(self, task_id, task_load):
         if task_id in self.task_entries:

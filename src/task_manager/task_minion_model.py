@@ -3,7 +3,7 @@
 class TaskInfo(object):
     def __init__(self, task_id=-1):
         self.id = task_id
-        # self.status = ""
+        self.status = ""
         self.load = 0
         self.memory = 0
         self.stdout = ""
@@ -137,6 +137,7 @@ class TaskMinionModel(object):
         # print "TaskMinionModel::SetTaskInfo"
         task = self.GetTaskById(task_info.id)
         task.info.id = task_info.id
+        task.info.status = task_info.status
         task.info.load = task_info.load
         task.info.memory = task_info.memory
         task.info.stdout_delta = task_info.stdout_delta

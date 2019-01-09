@@ -94,6 +94,7 @@ class TaskMinionController(object):
             self.PublishSubTreeTaskCommand('stop', active_task.children)
 
     def TaskInfoChanged(self, task_info):
+        self.view.SetTaskStatusById(task_info.id, task_info.status)
         self.view.SetTaskLoadById(task_info.id, task_info.load)
         self.view.SetTaskMemoryById(task_info.id, task_info.memory)
         self.view.SetTaskOutputDeltaById(task_info.id, task_info.stdout_delta)

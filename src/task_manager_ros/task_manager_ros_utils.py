@@ -37,6 +37,7 @@ def ConvertFromRosTaskConfigList(task_config_list_msg):
 
 def ConvertFromRosTaskInfo(task_info_msg):
     task_info = task_minion_model.TaskInfo(task_info_msg.id)
+    task_info.status = task_info_msg.status
     task_info.load = task_info_msg.load
     task_info.memory = task_info_msg.memory
     task_info.stdout = task_info_msg.stdout
@@ -47,6 +48,7 @@ def ConvertFromRosTaskInfo(task_info_msg):
 def ConvertToRosTaskInfo(task_info):
     task_info_msg = task_manager_ros.msg.TaskInfo()
     task_info_msg.id = task_info.id
+    task_info_msg.status = task_info.status
     task_info_msg.load = task_info.load
     task_info_msg.memory = task_info.memory
     task_info_msg.stdout = task_info.stdout
