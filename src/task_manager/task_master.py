@@ -25,7 +25,7 @@ class TaskMaster(object):
         self.model = task_minion_model.TaskMinionModel()
         self.model.SetTaskInfoChangedCallback(self.TaskInfoChanged)
         self.processes = {}
-        self.process_outputs = {}
+        self.process_output_queues = {}
         self.task_command_queue = Queue.Queue()
         self.task_config_queue = Queue.Queue()
 
@@ -55,9 +55,9 @@ class TaskMaster(object):
         print "TaskMaster::AddProcess"
         self.processes[task_id] = process
 
-    def AddProcessOutput(self, task_id, process_output):
-        print "TaskMaster::AddProcessOutput"
-        self.process_outputs[task_id] = process_output
+    def AddProcessOutputQueue(self, task_id, process_output_queue):
+        print "TaskMaster::AddProcessOutputQueue"
+        self.process_output_queues[task_id] = process_output_queue
 
     def ProcessExists(self, task_id):
         if task_id in self.processes:
@@ -65,10 +65,10 @@ class TaskMaster(object):
         print "[TaskMaster::ProcessExists] Missing id:" + str(task_id)
         return False
 
-    def ProcessOutputExists(self, task_id):
-        if task_id in self.process_outputs:
+    def ProcessOutputQueueExists(self, task_id):
+        if task_id in self.process_output_queues:
             return True
-        print "[TaskMaster::ProcessOutputExists] Missing id:" + str(task_id)
+        print "[TaskMaster::ProcessOutputQueueExists] Missing id:" + str(task_id)
         return False
 
     def GetProcessById(self, task_id):
@@ -77,10 +77,10 @@ class TaskMaster(object):
         	return self.processes[task_id]
         return None
 
-    def GetProcessOutputById(self, task_id):
-        print "TaskMaster::GetProcessOutputById"
-        if self.ProcessOutputExists(task_id):
-            return self.process_outputs[task_id]
+    def GetProcessOutputQueueById(self, task_id):
+        print "TaskMaster::GetProcessOutputQueueById"
+        if self.ProcessOutputQueueExists(task_id):
+            return self.process_output_queues[task_id]
         return None
 
     def PushTaskCommand(self, task_command):
@@ -106,7 +106,7 @@ class TaskMaster(object):
         output_thread = Thread(target=self.EnqueueProcessOutput, args=(process.stdout, output_queue))
         output_thread.daemon = True  # thread dies with the program
         output_thread.start()
-        self.AddProcessOutput(task_config.id, output_queue)
+        self.AddProcessOutputQueue(task_config.id, output_queue)
         self.AddProcess(task_config.id, process)
 
     def StopProcess(self, task_id):
@@ -145,16 +145,34 @@ class TaskMaster(object):
         for task_id, proc in self.processes.iteritems():
             print "Getting info for task id:" + str(task_id)
 
-            process_output = self.GetProcessOutputById(task_id)
-            if not process_output:
+            process_output_queue = self.GetProcessOutputQueueById(task_id)
+            if not process_output_queue:
                 pass
 
+            # update task output
             task_info = task_minion_model.TaskInfo(task_id)
             try:
-                task_info.stdout_delta = process_output.get_nowait() # or q.get(timeout=.1)
+                task_info.stdout_delta = process_output_queue.get_nowait() # or q.get(timeout=.1)
                 print "stdout_delta: " + task_info.stdout_delta
             except Queue.Empty:
                 print "No output for process with task id:" + str(task_id)
+
+            # update task stats
+            ps_proc = psutil.Process(proc.pid)
+            cpu_percent = ps_proc.cpu_percent(interval=1)
+            print "cpu_percent: " + str(cpu_percent)
+            task_info.load = cpu_percent
+
+            memory_percent = ps_proc.memory_percent()
+            print "memory_percent: " + str(memory_percent)
+            task_info.memory = memory_percent
+
+            is_running = ps_proc.is_running()
+            if is_running:
+                task_info.status = 'running'
+            else:
+                task_info.status = 'stopped'
+            print "status: " + task_info.status
 
             print "Calling SetTaskInfo"
             self.model.SetTaskInfo(task_info)

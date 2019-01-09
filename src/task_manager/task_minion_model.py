@@ -134,7 +134,7 @@ class TaskMinionModel(object):
         return False
 
     def SetTaskInfo(self, task_info):
-        print "TaskMinionModel::SetTaskInfo"
+        # print "TaskMinionModel::SetTaskInfo"
         task = self.GetTaskById(task_info.id)
         task.info.id = task_info.id
         task.info.load = task_info.load

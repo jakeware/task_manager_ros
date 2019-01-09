@@ -91,12 +91,18 @@ class TaskEntry(object):
 
     def SetTaskLoad(self, task_load):
         self.load_text.config(state='normal')
+        self.load_text.delete('1.0', END)
         self.load_text.insert('1.0', str(round(task_load,2)))
+        self.load_text.tag_configure("center", justify='center')
+        self.load_text.tag_add("center", 1.0, END)
         self.load_text.config(state='disabled')
 
     def SetTaskMemory(self, task_memory):
         self.memory_text.config(state='normal')
+        self.memory_text.delete('1.0', END)
         self.memory_text.insert('1.0', str(round(task_memory,2)))
+        self.memory_text.tag_configure("center", justify='center')
+        self.memory_text.tag_add("center", 1.0, END)
         self.memory_text.config(state='disabled')
 
 class OutputEntry(object):
