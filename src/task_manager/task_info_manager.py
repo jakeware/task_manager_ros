@@ -99,8 +99,7 @@ class TaskInfoManager(object):
             return None
 
         try:
-            task_output = task_output_queue.get_nowait() # or q.get(timeout=.1)
-            return task_output
+            return task_output_queue.get_nowait() # or q.get(timeout=.1)
         except Queue.Empty:
             print "No output for process with task id:" + str(task_id)
 
@@ -114,6 +113,7 @@ class TaskInfoManager(object):
             pass
 
     def GetTaskInfoById(self, task_id):
+        # print "TaskInfoManager::GetTaskInfoById"
         task_info_queue = self.GetTaskInfoQueueById(task_id)
         try:
             return task_info_queue.get_nowait()
@@ -121,7 +121,7 @@ class TaskInfoManager(object):
             pass
 
     def UpdateTaskOutput(self, output, task_output_queue):
-        print "TaskInfoManager::PushTaskOutput"
+        # print "TaskInfoManager::PushTaskOutput"
         for line in iter(output.readline, b''):
             task_output_queue.put(line)
         output.close()
@@ -132,11 +132,11 @@ class TaskInfoManager(object):
         while True:
             task_info = task_minion_model.TaskInfo(task_id)
             cpu_percent = proc.cpu_percent(interval=1)
-            print "cpu_percent: " + str(cpu_percent)
+            # print "cpu_percent: " + str(cpu_percent)
             task_info.load = cpu_percent
 
             memory_percent = proc.memory_percent()
-            print "memory_percent: " + str(memory_percent)
+            # print "memory_percent: " + str(memory_percent)
             task_info.memory = memory_percent
 
             is_running = proc.is_running()
@@ -144,15 +144,17 @@ class TaskInfoManager(object):
                 task_info.status = 'running'
             else:
                 task_info.status = 'stopped'
-            print "status: " + task_info.status
+            # print "status: " + task_info.status
 
             task_stats_queue.put(task_info)
 
     def UpdateTaskInfo(self):
-        print "UpdateTaskInfo::Run"
+        # print "TaskInfoManager::UpdateTaskInfo"
 
         while True:
-            task_id_list = list(self.task_info_queues.keys())
+            task_id_list = []
+            with self.task_info_lock:
+                task_id_list = list(self.task_info_queues.keys())
             for task_id in task_id_list:
                 task_stats = self.GetTaskStatsById(task_id)
                 if not task_stats:
@@ -160,8 +162,6 @@ class TaskInfoManager(object):
 
                 task_output = self.GetTaskOutputById(task_id)
                 if task_output:
-                    task_stats.stdout_delta = task_output
-
-                with self.task_info_lock:
-                    task_info_queue = self.GetTaskInfoQueueById(task_id)
-                    task_info_queue.put(task_stats)
+                    task_stats.stdout_delta = task_output                    
+                task_info_queue = self.GetTaskInfoQueueById(task_id)
+                task_info_queue.put(task_stats)

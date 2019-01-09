@@ -113,15 +113,19 @@ class TaskMaster(object):
                 pass
 
     def UpdateTaskInfo(self):
-        print "TaskMaster::UpdateTaskInfo"
+        # print "TaskMaster::UpdateTaskInfo"
         for task_id, proc in self.processes.iteritems():
             print "Getting info for task id:" + str(task_id)
             task_info = self.task_info_manager.GetTaskInfoById(task_id)
             if not task_info:
-                print "!!!!!got empty task_info!!!!!"
+                # print "Got empty task_info"
                 continue
 
             print "Calling SetTaskInfo"
+            print "cpu_percent: " + str(task_info.load)
+            print "memory_percent: " + str(task_info.memory)
+            print "status: " + task_info.status
+
             self.model.SetTaskInfo(task_info)
 
     def Run(self):
