@@ -44,7 +44,7 @@ class TaskMinionRos(object):
     def TaskInfoCallback(self, task_info_msg):
         # print "TaskMinionRos::TaskStatusCallback"
         task_info = task_manager_ros_utils.ConvertFromRosTaskInfo(task_info_msg)
-        self.controller.SetModelTaskInfo(task_info)
+        self.controller.PushModelTaskInfo(task_info)
 
     def Run(self):
         print "TaskMinionRos::Run"

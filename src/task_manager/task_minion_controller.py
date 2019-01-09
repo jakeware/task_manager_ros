@@ -111,7 +111,7 @@ class TaskMinionController(object):
         print "[TaskMinionController] TasksChanged"
         self.AddTaskEntriesDepthFirst(tasks)
 
-    def SetModelTaskInfo(self, task_info):
+    def PushModelTaskInfo(self, task_info):
         self.task_info_queue.put(task_info)
 
     def SetRequestRegisterTaskCallback(self, function):

@@ -39,7 +39,8 @@ def ConvertFromRosTaskInfo(task_info_msg):
     task_info = task_minion_model.TaskInfo(task_info_msg.id)
     task_info.load = task_info_msg.load
     task_info.memory = task_info_msg.memory
-    task_info.stdout_delta = task_info_msg.stdout
+    task_info.stdout = task_info_msg.stdout
+    task_info.stdout_delta = task_info_msg.stdout_delta
 
     return task_info
 

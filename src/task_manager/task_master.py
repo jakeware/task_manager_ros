@@ -10,8 +10,6 @@ import subprocess
 from task_manager import task_minion_model
 from task_manager import task_info_manager
 
-ON_POSIX = 'posix' in sys.builtin_module_names
-
 def signal_handler(sig, frame):
         print('[TaskMaster] Caught SIGINT. Exiting...')
         sys.exit(0)
@@ -21,7 +19,6 @@ class TaskMaster(object):
         print "TaskMaster::Constructor"
         self.next_task_id = 0
         self.model = task_minion_model.TaskMinionModel()
-        self.model.SetTaskInfoChangedCallback(self.TaskInfoChanged)
         self.processes = {}
         self.task_command_queue = Queue.Queue()
         self.task_config_queue = Queue.Queue()
@@ -29,10 +26,6 @@ class TaskMaster(object):
 
     def SetPublishTaskInfoCallback(self, callback):
         self.publish_task_info = callback
-
-    def TaskInfoChanged(self, task_info):
-        print "TaskMaster::TaskInfoChanged"
-        self.publish_task_info(task_info)
 
     def SetPublishTaskConfigListCallback(self, callback):
     	self.publish_task_config_list = callback
@@ -83,7 +76,7 @@ class TaskMaster(object):
     def StartProcess(self, task_config):
         print "TaskMaster::StartTask"
         cmd = shlex.split(task_config.command)
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=1, close_fds=ON_POSIX)
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=1)
         self.task_info_manager.AddProcess(task_config.id, process)
         self.AddProcess(task_config.id, process)
 
@@ -115,18 +108,17 @@ class TaskMaster(object):
     def UpdateTaskInfo(self):
         # print "TaskMaster::UpdateTaskInfo"
         for task_id, proc in self.processes.iteritems():
-            print "Getting info for task id:" + str(task_id)
+            # print "Getting info for task id:" + str(task_id)
             task_info = self.task_info_manager.GetTaskInfoById(task_id)
             if not task_info:
                 # print "Got empty task_info"
                 continue
 
-            print "Calling SetTaskInfo"
-            print "cpu_percent: " + str(task_info.load)
-            print "memory_percent: " + str(task_info.memory)
-            print "status: " + task_info.status
-
-            self.model.SetTaskInfo(task_info)
+            # print "Calling SetTaskInfo"
+            # print "cpu_percent: " + str(task_info.load)
+            # print "memory_percent: " + str(task_info.memory)
+            # print "status: " + task_info.status
+            self.publish_task_info(task_info)
 
     def Run(self):
         print "TaskMaster::Run"

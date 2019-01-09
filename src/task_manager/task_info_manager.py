@@ -4,6 +4,9 @@ import Queue
 import psutil
 import signal
 import threading
+import os
+import fcntl
+import time
 
 from task_manager import task_minion_model
 
@@ -29,8 +32,9 @@ class TaskInfoManager(object):
         self.AddTaskStatsQueue(task_id, task_stats_queue)
 
         # add task output stuff
+        fcntl.fcntl(process.stdout.fileno(), fcntl.F_SETFL, os.O_NONBLOCK)
         output_queue = Queue.Queue()
-        output_thread = threading.Thread(target=self.UpdateTaskOutput, args=(process.stdout, output_queue))
+        output_thread = threading.Thread(target=self.UpdateTaskOutput, args=(process, output_queue))
         output_thread.daemon = True  # thread dies with the program
         output_thread.start()
         self.AddTaskOutputQueue(task_id, output_queue)
@@ -120,37 +124,69 @@ class TaskInfoManager(object):
         except Queue.Empty:
             pass
 
-    def UpdateTaskOutput(self, output, task_output_queue):
+    def UpdateTaskOutput(self, process, task_output_queue):
         # print "TaskInfoManager::PushTaskOutput"
-        for line in iter(output.readline, b''):
-            task_output_queue.put(line)
+        while True:
+            # print "AAAA reading output"
+            output = ''
+            try:
+                output += process.stdout.read()
+            except:
+                continue
+            if output:
+                task_output_queue.put(output)
+            if output == '' and process.poll() != None:
+                process.stdout.flush()
+            time.sleep(0.1)
+
         output.close()
 
+    def GetProcessLoad(self, pid):
+        try:
+            proc = psutil.Process(pid)
+            return proc.cpu_percent(interval=1)
+        except psutil.NoSuchProcess:
+            print "[TaskInfoManager::GetProcessLoad] Task with PID:" + str(pid) + " no longer exists"
+            return None
+
+    def GetProcessMemory(self, pid):
+        try:
+            proc = psutil.Process(pid)
+            return proc.memory_percent()
+        except psutil.NoSuchProcess:
+            print "[TaskInfoManager::GetProcessMemory] Task with PID:" + str(pid) + " no longer exists"
+            return None
+
+    def GetProcessIsRunning(self, pid):
+        try:
+            proc = psutil.Process(pid)
+            return proc.is_running()
+        except psutil.NoSuchProcess:
+            print "[TaskInfoManager::GetProcessIsRunning] Task with PID:" + str(pid) + " no longer exists"
+            return None
+
     def UpdateTaskStats(self, task_id, process, task_stats_queue):
-        proc = psutil.Process(process.pid)
-
-        while True:
+        while psutil.pid_exists(process.pid):
             task_info = task_minion_model.TaskInfo(task_id)
-            cpu_percent = proc.cpu_percent(interval=1)
-            # print "cpu_percent: " + str(cpu_percent)
-            task_info.load = cpu_percent
 
-            memory_percent = proc.memory_percent()
-            # print "memory_percent: " + str(memory_percent)
-            task_info.memory = memory_percent
+            load = self.GetProcessLoad(process.pid)
+            if load:
+                task_info.load = load
 
-            is_running = proc.is_running()
+            memory = self.GetProcessMemory(process.pid)
+            if memory:
+                task_info.memory = memory
+
+            is_running = self.GetProcessIsRunning(process.pid)
             if is_running:
                 task_info.status = 'running'
             else:
                 task_info.status = 'stopped'
-            # print "status: " + task_info.status
 
             task_stats_queue.put(task_info)
 
     def UpdateTaskInfo(self):
         # print "TaskInfoManager::UpdateTaskInfo"
-
         while True:
             task_id_list = []
             with self.task_info_lock:
@@ -162,6 +198,6 @@ class TaskInfoManager(object):
 
                 task_output = self.GetTaskOutputById(task_id)
                 if task_output:
-                    task_stats.stdout_delta = task_output                    
+                    task_stats.stdout_delta = task_output
                 task_info_queue = self.GetTaskInfoQueueById(task_id)
                 task_info_queue.put(task_stats)

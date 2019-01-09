@@ -15,7 +15,7 @@ class TaskMasterRos(object):
         self.task_master.SetPublishTaskInfoCallback(self.PublishTaskInfo)
 
     def PublishTaskInfo(self, task_info):
-        print "TaskMasterRos::PublishTaskInfo"
+        # print "TaskMasterRos::PublishTaskInfo"
         task_info_msg = task_manager_ros_utils.ConvertToRosTaskInfo(task_info)
         self.task_info_pub.publish(task_info_msg)
 
