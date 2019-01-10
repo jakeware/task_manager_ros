@@ -13,6 +13,6 @@ catkin init
 catkin build
 source ./devel/setup.bash
 roscore
-roslaunch task_manager_ros task_master_ros_node.py
-roslaunch task_manager_ros task_minion_ros_node.py
+roslaunch task_manager_ros task_master_ros_node.launch
+roslaunch task_manager_ros task_minion_ros_node.launch
 ```
