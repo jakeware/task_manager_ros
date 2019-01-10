@@ -1,6 +1,6 @@
 # task_manager_ros
 
-One process manager to rule them all.
+This is a process manager package that allows for the execution of processes as well as a simple visualization of their resource consumption and standard output.  There are two main modules, task_minion and task_master.  The minion includes a Tkinter GUI that allows for the selection and interaction with a set of tasks from a predefined list.  Tasks can be processes or groups of processes.  The master is a python module responsible for executing commands.
 
 ## Build
 
@@ -34,3 +34,14 @@ The GUI supports the following commands.  Note that you can start task groups by
 * Down: Move task selection down one row.
 * Ctrl-s: Start task or group.
 * Ctrl-k: Stop task or group.
+
+## Why
+
+Although there are several existing process managers, none of them satisfied our constraints.  Here is a list of those that we considered using.
+
+* [rosmon] (http://wiki.ros.org/rosmon)
+* [node_manager_fkie] (http://wiki.ros.org/node_manager_fkie)
+* [procman] (https://github.com/ashuang/procman)
+* [rqt_top] (https://github.com/ros-visualization/rqt_top)
+* [rqt_launch] (https://github.com/ros-visualization/rqt_launch)
+* [rosconstole] (https://github.com/ros/rosconsole)
