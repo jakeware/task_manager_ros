@@ -2,9 +2,11 @@
 
 This is a process manager package that allows for the execution of processes as well as a simple visualization of their resource consumption and standard output.  There are two main modules, task_minion and task_master.  The minion includes a Tkinter GUI that allows for the selection and interaction with a set of tasks from a predefined list.  Tasks can be processes or groups of processes.  The master is a python module responsible for executing commands.
 
-## Build
+Note: The names of the minion and master modules should be switched.  The package evolved such that the original names no longer make sense.  That will be sorted out once everything is a little farther along.
 
-We are in alpha with this at the moment.  Here are some instructions to help test the package.
+## Quick Start
+
+This project is in alpha at the moment.  However, if you decide you would like to experiment with it, here are some basic setup instructions.
 
 ```
 mkdir -p task_manager_ws/src
