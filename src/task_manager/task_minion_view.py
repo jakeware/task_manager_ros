@@ -151,9 +151,16 @@ class OutputEntry(object):
         self.output_text.config(state='disabled')
 
     def SetTaskOutputDelta(self, task_output):
+        window_position_fractions = self.output_text.yview()
+        bottom_position_fraction = window_position_fractions[1]
+        autoscroll = False
+        if bottom_position_fraction == 1.0:
+            autoscroll = True
+
         self.output_text.config(state='normal')
         self.output_text.insert(END, task_output)
-        self.output_text.see(END)
+        if autoscroll:
+            self.output_text.see(END)
         self.output_text.config(state='disabled')
 
 class TaskMinionView(object):
