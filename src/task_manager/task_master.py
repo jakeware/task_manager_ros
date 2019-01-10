@@ -76,6 +76,9 @@ class TaskMaster(object):
     def StartProcess(self, task_config):
         print "TaskMaster::StartTask"
         cmd = shlex.split(task_config.command)
+        if self.ProcessExists(task_config.id):
+            print "[TaskMaster::StartProcess] Process with task_id:" + str(task_config.id) + " already exists.  Not starting."
+            return
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, bufsize=1)
         self.task_info_manager.AddProcess(task_config.id, process)
         self.AddProcess(task_config.id, process)
