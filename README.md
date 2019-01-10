@@ -30,5 +30,7 @@ The process list can be found in task_manager_ros/cfg/task_config.yaml.  Each pr
 
 The GUI supports the following commands.  Note that you can start task groups by selected the group row and issuing the corresponding hotkey command.
 
+* Up: Move task selection up one row.
+* Down: Move task selection down one row.
 * Ctrl-s: Start task or group.
 * Ctrl-k: Stop task or group.
