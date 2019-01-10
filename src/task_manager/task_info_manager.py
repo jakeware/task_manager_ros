@@ -137,9 +137,10 @@ class TaskInfoManager(object):
                 task_output_queue.put(output)
             if output == '' and process.poll() != None:
                 process.stdout.flush()
+                break
             time.sleep(0.1)
 
-        output.close()
+        process.stdout.close()
 
     def GetProcessLoad(self, pid):
         try:
