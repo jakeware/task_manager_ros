@@ -35,7 +35,7 @@ The GUI supports the following commands.  Note that you can start task groups by
 * Ctrl-s: Start task or group.
 * Ctrl-k: Stop task or group.
 
-## Why
+## Alternatives
 
 Although there are several existing process managers, none of them satisfied our constraints.  Here is a list of those that we considered using.
 
