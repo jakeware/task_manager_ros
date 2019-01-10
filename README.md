@@ -39,9 +39,9 @@ The GUI supports the following commands.  Note that you can start task groups by
 
 Although there are several existing process managers, none of them satisfied our constraints.  Here is a list of those that we considered using.
 
-* [rosmon] (http://wiki.ros.org/rosmon)
-* [node_manager_fkie] (http://wiki.ros.org/node_manager_fkie)
-* [procman] (https://github.com/ashuang/procman)
-* [rqt_top] (https://github.com/ros-visualization/rqt_top)
-* [rqt_launch] (https://github.com/ros-visualization/rqt_launch)
-* [rosconstole] (https://github.com/ros/rosconsole)
+* [rosmon](https://github.com/xqms/rosmon)
+* [multimaster_fkie](https://github.com/fkie/multimaster_fkie)
+* [procman](https://github.com/ashuang/procman)
+* [rqt_top](https://github.com/ros-visualization/rqt_top)
+* [rqt_launch](https://github.com/ros-visualization/rqt_launch)
+* [rosconstole](https://github.com/ros/rosconsole)
