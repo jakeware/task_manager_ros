@@ -8,7 +8,9 @@ We are in alpha with this at the moment.  Here are some instructions to help tes
 
 ```
 mkdir -p task_manager_ws/src
-cd task_manager_ws
+cd task_manager_ws/src
+git clone http://github.com/jakeware/task_manager_ros.git
+cd ../
 catkin init
 catkin build
 source ./devel/setup.bash
