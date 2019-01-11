@@ -39,9 +39,25 @@ The GUI supports the following commands.  Note that you can start task groups by
 * Ctrl-s: Start task or group.
 * Ctrl-k: Stop task or group.
 
+## Objectives
+
+Here are the objectives for this package.
+
+* Limited dependencies outside of those found in the default python version of Ubuntu LTS
+* Capable of starting and stopping both individual and groups of processes
+* Display process load for every process
+* Display memory consumption for every process
+* Display current state (running, stopped, etc.) for every process
+* Display separate standard output stream for every process
+* Enforce a dependency structure when starting a set of processes
+* Use a simple YAML configuration file (No XML)
+* Provide a ROS message passing framework
+* Provide a non-GUI interface for headless operation on build servers
+* [Maybe] Start and stop ROS launch files correctly
+
 ## Alternatives
 
-Although there are several existing process managers, none of them satisfied our constraints.  Here is a list of those that we considered using.
+Although there are several existing process managers, none of them satisfied the requirements listed above..  Here is a list of the other packages that we considered using.
 
 * [rosmon](https://github.com/xqms/rosmon)
 * [multimaster_fkie](https://github.com/fkie/multimaster_fkie)
