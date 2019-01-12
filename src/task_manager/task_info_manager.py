@@ -97,6 +97,10 @@ class TaskInfoManager(object):
                 return self.task_stats_queues[task_id]
             return None
 
+    def GetTaskInfoQueuesKeys(self):
+        with self.task_info_lock:
+            return list(self.task_info_queues.keys())
+
     def GetTaskOutputById(self, task_id):
         task_output_queue = self.GetTaskOutputQueueById(task_id)
         if not task_output_queue:
@@ -189,9 +193,7 @@ class TaskInfoManager(object):
     def UpdateTaskInfo(self):
         # print "TaskInfoManager::UpdateTaskInfo"
         while True:
-            task_id_list = []
-            with self.task_info_lock:
-                task_id_list = list(self.task_info_queues.keys())
+            task_id_list = self.GetTaskInfoQueuesKeys()
             for task_id in task_id_list:
                 task_stats = self.GetTaskStatsById(task_id)
                 if not task_stats:

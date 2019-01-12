@@ -36,15 +36,18 @@ class TaskMaster(object):
     	return task_id
 
     def PushTaskConfig(self, task_config):
-        print "TaskMaster::AddTaskConfig"
+        # print "TaskMaster::AddTaskConfig"
         self.task_config_queue.put(task_config)
 
     def PopTaskConfig(self):
         return self.task_config_queue.get(0)
 
     def AddProcess(self, task_id, process):
-        print "TaskMaster::AddProcess"
+        # print "TaskMaster::AddProcess"
         self.processes[task_id] = process
+
+    def DeleteProcess(self, task_id):
+        del self.processes[task_id]
 
     def ProcessExists(self, task_id):
         if task_id in self.processes:
@@ -53,20 +56,20 @@ class TaskMaster(object):
         return False
 
     def GetProcessById(self, task_id):
-        print "TaskMaster::GetProcessById"
+        # print "TaskMaster::GetProcessById"
         if self.ProcessExists(task_id):
         	return self.processes[task_id]
         return None
 
     def PushTaskCommand(self, task_command):
-        print "TaskMaster::PushTaskCommand"
+        # print "TaskMaster::PushTaskCommand"
         self.task_command_queue.put(task_command)
 
     def PopTaskCommand(self):
         return self.task_command_queue.get(0)
 
     def ExecuteTaskCommand(self, task_command):
-        print "TaskMaster::ExecuteTaskCommand"
+        # print "TaskMaster::ExecuteTaskCommand"
         if task_command.command == 'start':
             task_config = self.model.GetTaskConfigById(task_command.id)
             self.StartProcess(task_config)
@@ -89,7 +92,7 @@ class TaskMaster(object):
         if process:
         	process.kill()
         	return True
-        print "[TaskMaster::StopTask] Failed to stop process with task_id:" + str(task_id) + " and pid:" + str(process.pid) 
+        print "[TaskMaster::StopTask] Process not found.  Failed to stop process with task_id:" + str(task_id) + " and pid:" + str(process.pid) 
         return False
 
     def ProcessTaskCommandQueue(self):
@@ -123,6 +126,16 @@ class TaskMaster(object):
             # print "status: " + task_info.status
             self.publish_task_info(task_info)
 
+    def GetProcessesKeys(self):
+        return list(self.processes.keys())
+
+    def PruneProcesses(self):
+        task_id_list = self.GetProcessesKeys()
+        for task_id in task_id_list:
+            process_pid = self.GetProcessById(task_id).pid
+            if not self.task_info_manager.GetProcessIsRunning(process_pid):
+                self.DeleteProcess(task_id)
+
     def Run(self):
         print "TaskMaster::Run"
         signal.signal(signal.SIGINT, signal_handler)
@@ -131,5 +144,6 @@ class TaskMaster(object):
             self.ProcessTaskCommandQueue()
             self.ProcessTaskConfigQueue()
             self.UpdateTaskInfo()
+            self.PruneProcesses()
             self.publish_task_config_list(self.model.GetTaskConfigList())
             time.sleep(0.1)
