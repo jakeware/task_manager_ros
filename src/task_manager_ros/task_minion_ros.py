@@ -5,7 +5,6 @@ import rospy
 from task_manager_ros.msg import *
 from task_manager_ros.srv import *
 from task_manager_ros import task_manager_ros_utils
-from task_manager import task_minion_model
 from task_manager import task_minion_controller
 
 class TaskMinionRos(object):
@@ -37,14 +36,13 @@ class TaskMinionRos(object):
 
     def TaskConfigListCallback(self, task_config_list_msg):
         # print "TaskMinionRos::TaskConfigListCallback"
-        if not self.controller.ReceivedMasterTaskConfigList():
-            task_config_list = task_manager_ros_utils.ConvertFromRosTaskConfigList(task_config_list_msg)
-            self.controller.SetMasterTaskConfigList(task_config_list)
+        task_config_list = task_manager_ros_utils.ConvertFromRosTaskConfigList(task_config_list_msg)
+        self.controller.PushMasterTaskConfigList(task_config_list)
 
     def TaskInfoCallback(self, task_info_msg):
         # print "TaskMinionRos::TaskStatusCallback"
         task_info = task_manager_ros_utils.ConvertFromRosTaskInfo(task_info_msg)
-        self.controller.PushModelTaskInfo(task_info)
+        self.controller.PushTaskInfo(task_info)
 
     def Run(self):
         print "TaskMinionRos::Run"

@@ -13,6 +13,7 @@ from ScrolledText import ScrolledText
 
 from task_manager import task_minion_view
 from task_manager import task_minion_model
+from task_manager import task_manager_core
 
 def signal_handler(sig, frame):
         print('[TaskMinion] Caught SIGINT. Exiting...')
@@ -26,6 +27,7 @@ class TaskMinionController(object):
         self.model.SetTaskInfoChangedCallback(self.TaskInfoChanged)
         self.model.SetTaskConfigListChangedCallback(self.TasksChanged)
         self.task_info_queue = Queue.Queue()
+        self.task_config_list_queue = Queue.Queue()
         self.task_config_path = task_config_path
 
         self.received_master_task_config_list = False  # have we received a task config list from TaskMaster yet?
@@ -112,7 +114,7 @@ class TaskMinionController(object):
         print "[TaskMinionController] TasksChanged"
         self.AddTaskEntriesDepthFirst(tasks)
 
-    def PushModelTaskInfo(self, task_info):
+    def PushTaskInfo(self, task_info):
         self.task_info_queue.put(task_info)
 
     def SetRequestRegisterTaskCallback(self, function):
@@ -121,10 +123,11 @@ class TaskMinionController(object):
     def ReceivedMasterTaskConfigList(self):
         return self.received_master_task_config_list
 
-    def SetMasterTaskConfigList(self, task_config_list):
-        print "[TaskMinionController::SetMasterTaskConfigList] Setting master task config"
-        self.received_master_task_config_list = True
-        self.model.SetTaskConfigList(task_config_list)
+    def PushMasterTaskConfigList(self, task_config_list):
+        if not self.ReceivedMasterTaskConfigList():
+            print "[TaskMinionController::PushMasterTaskConfigList]"
+            self.received_master_task_config_list = True
+            self.task_config_list_queue.put(task_config_list)
 
     def RegisterTasks(self, task_config_list):
         print "TaskMinionController::RegisterTasks"
@@ -168,7 +171,7 @@ class TaskMinionController(object):
             print "group: " + group
             print "dependencies: " + "[%s]" % ", ".join(map(str, dependencies))
 
-            task_config = task_minion_model.TaskConfig()
+            task_config = task_manager_core.TaskConfig()
             task_config.name = name
             task_config.command = command
             task_config.group = group
@@ -181,13 +184,25 @@ class TaskMinionController(object):
     def SetPublishTaskCommandCallback(self, callback):
         self.publish_task_command = callback
 
-    def Update(self):
-        while self.task_info_queue.qsize(  ):
+    def UpdateTaskInfo(self):
+        while self.task_info_queue.qsize():
             try:
                 task_info = self.task_info_queue.get(0)
                 self.model.SetTaskInfo(task_info)
             except Queue.Empty:
                 pass
+
+    def UpdateTaskConfigList(self):
+        while self.task_config_list_queue.qsize():
+            try:
+                task_config_list = self.task_config_list_queue.get(0)
+                self.model.SetTaskConfigList(task_config_list)
+            except Queue.Empty:
+                pass
+
+    def Update(self):
+        self.UpdateTaskInfo()
+        self.UpdateTaskConfigList()
 
         self.root.after(100, self.Update)
 
