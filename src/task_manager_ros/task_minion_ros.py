@@ -5,7 +5,6 @@ import rospy
 from task_manager_ros.msg import *
 from task_manager_ros.srv import *
 from task_manager_ros import task_manager_ros_utils
-from task_manager import task_minion_model
 from task_manager import task_minion_controller
 
 class TaskMinionRos(object):

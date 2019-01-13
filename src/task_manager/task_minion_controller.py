@@ -13,6 +13,7 @@ from ScrolledText import ScrolledText
 
 from task_manager import task_minion_view
 from task_manager import task_minion_model
+from task_manager import task_manager_core
 
 def signal_handler(sig, frame):
         print('[TaskMinion] Caught SIGINT. Exiting...')
@@ -170,7 +171,7 @@ class TaskMinionController(object):
             print "group: " + group
             print "dependencies: " + "[%s]" % ", ".join(map(str, dependencies))
 
-            task_config = task_minion_model.TaskConfig()
+            task_config = task_manager_core.TaskConfig()
             task_config.name = name
             task_config.command = command
             task_config.group = group

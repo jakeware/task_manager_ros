@@ -8,7 +8,7 @@ import os
 import fcntl
 import time
 
-from task_manager import task_minion_model
+from task_manager import task_manager_core
 
 class TaskInfoManager(object):
     def __init__(self):
@@ -23,13 +23,13 @@ class TaskInfoManager(object):
         info_thread = threading.Thread(target=self.UpdateTaskInfo)
         info_thread.start()
 
-    def AddProcess(self, task_id, process):
+    def SetProcess(self, task_id, process):
         # add task stats stuff
         task_stats_queue = Queue.Queue()
         stats_thread = threading.Thread(target=self.UpdateTaskStats, args=(task_id, process, task_stats_queue))
         stats_thread.daemon = True  # thread dies with the program
         stats_thread.start()
-        self.AddTaskStatsQueue(task_id, task_stats_queue)
+        self.SetTaskStatsQueue(task_id, task_stats_queue)
 
         # add task output stuff
         fcntl.fcntl(process.stdout.fileno(), fcntl.F_SETFL, os.O_NONBLOCK)
@@ -37,23 +37,23 @@ class TaskInfoManager(object):
         output_thread = threading.Thread(target=self.UpdateTaskOutput, args=(process, output_queue))
         output_thread.daemon = True  # thread dies with the program
         output_thread.start()
-        self.AddTaskOutputQueue(task_id, output_queue)
+        self.SetTaskOutputQueue(task_id, output_queue)
 
         # add queue for complete task info
         info_queue = Queue.Queue()
-        self.AddTaskInfoQueue(task_id, info_queue)
+        self.SetTaskInfoQueue(task_id, info_queue)
 
-    def AddTaskOutputQueue(self, task_id, task_output_queue):
+    def SetTaskOutputQueue(self, task_id, task_output_queue):
         # print "TaskInfoManager::AddTaskOutputQueue"
         with self.task_output_lock:
             self.task_output_queues[task_id] = task_output_queue
 
-    def AddTaskInfoQueue(self, task_id, task_info_queue):
+    def SetTaskInfoQueue(self, task_id, task_info_queue):
         # print "TaskInfoManager::AddTaskInfoQueue"
         with self.task_info_lock:
             self.task_info_queues[task_id] = task_info_queue
 
-    def AddTaskStatsQueue(self, task_id, task_stats_queue):
+    def SetTaskStatsQueue(self, task_id, task_stats_queue):
         # print "TaskInfoManager::AddTaskStatsQueue"
         with self.task_stats_lock:
             self.task_stats_queues[task_id] = task_stats_queue
@@ -61,19 +61,19 @@ class TaskInfoManager(object):
     def TaskOutputQueueExists(self, task_id):
         if task_id in self.task_output_queues:
             return True
-        print "[TaskInfoManager::TaskOutputQueueExists] Missing id:" + str(task_id)
+        # print "[TaskInfoManager::TaskOutputQueueExists] Missing id:" + str(task_id)
         return False
 
     def TaskInfoQueueExists(self, task_id):
         if task_id in self.task_info_queues:
             return True
-        print "[TaskInfoManager::TaskInfoQueueExists] Missing id:" + str(task_id)
+        # print "[TaskInfoManager::TaskInfoQueueExists] Missing id:" + str(task_id)
         return False
 
     def TaskStatsQueueExists(self, task_id):
         if task_id in self.task_stats_queues:
             return True
-        print "[TaskInfoManager::TaskStatsQueueExists] Missing id:" + str(task_id)
+        # print "[TaskInfoManager::TaskStatsQueueExists] Missing id:" + str(task_id)
         return False
 
     def GetTaskOutputQueueById(self, task_id):
@@ -115,6 +115,9 @@ class TaskInfoManager(object):
 
     def GetTaskStatsById(self, task_id):
         task_stats_queue = self.GetTaskStatsQueueById(task_id)
+        if not task_stats_queue:
+            return None
+
         try:
             return task_stats_queue.get_nowait()
         except Queue.Empty:
@@ -123,28 +126,13 @@ class TaskInfoManager(object):
     def GetTaskInfoById(self, task_id):
         # print "TaskInfoManager::GetTaskInfoById"
         task_info_queue = self.GetTaskInfoQueueById(task_id)
+        if not task_info_queue:
+            return None
+
         try:
             return task_info_queue.get_nowait()
         except Queue.Empty:
             pass
-
-    def UpdateTaskOutput(self, process, task_output_queue):
-        # print "TaskInfoManager::PushTaskOutput"
-        while True:
-            # print "AAAA reading output"
-            output = ''
-            try:
-                output += process.stdout.read()
-            except:
-                continue
-            if output:
-                task_output_queue.put(output)
-            if output == '' and process.poll() != None:
-                process.stdout.flush()
-                break
-            time.sleep(0.1)
-
-        process.stdout.close()
 
     def GetProcessLoad(self, pid):
         try:
@@ -170,9 +158,27 @@ class TaskInfoManager(object):
             print "[TaskInfoManager::GetProcessIsRunning] Task with PID:" + str(pid) + " no longer exists"
             return None
 
+    def UpdateTaskOutput(self, process, task_output_queue):
+        # print "TaskInfoManager::PushTaskOutput"
+        while True:
+            # print "AAAA reading output"
+            output = ''
+            try:
+                output += process.stdout.read()
+            except:
+                continue
+            if output:
+                task_output_queue.put(output)
+            if output == '' and process.poll() != None:
+                process.stdout.flush()
+                break
+            time.sleep(0.1)
+
+        process.stdout.close()
+
     def UpdateTaskStats(self, task_id, process, task_stats_queue):
         while psutil.pid_exists(process.pid):
-            task_info = task_minion_model.TaskInfo(task_id)
+            task_info = task_manager_core.TaskInfo(task_id)
 
             load = self.GetProcessLoad(process.pid)
             if load:
@@ -189,6 +195,7 @@ class TaskInfoManager(object):
                 task_info.status = 'stopped'
 
             task_stats_queue.put(task_info)
+            time.sleep(0.1)
 
     def UpdateTaskInfo(self):
         # print "TaskInfoManager::UpdateTaskInfo"
@@ -202,5 +209,7 @@ class TaskInfoManager(object):
                 task_output = self.GetTaskOutputById(task_id)
                 if task_output:
                     task_stats.stdout_delta = task_output
+
                 task_info_queue = self.GetTaskInfoQueueById(task_id)
                 task_info_queue.put(task_stats)
+            time.sleep(0.1)
