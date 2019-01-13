@@ -7,6 +7,7 @@ import threading
 import os
 import fcntl
 import time
+import sys
 
 from task_manager import task_manager_core
 
@@ -166,12 +167,16 @@ class TaskInfoManager(object):
             try:
                 output += process.stdout.read()
             except:
-                continue
+                pass
+
             if output:
                 task_output_queue.put(output)
-            if output == '' and process.poll() != None:
+
+            if process.poll() != None:
                 process.stdout.flush()
+                sys.stdout.flush()
                 break
+
             time.sleep(0.1)
 
         process.stdout.close()

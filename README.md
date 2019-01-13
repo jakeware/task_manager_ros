@@ -65,3 +65,4 @@ Although there are several existing process managers, none of them satisfied the
 * [rqt_top](https://github.com/ros-visualization/rqt_top)
 * [rqt_launch](https://github.com/ros-visualization/rqt_launch)
 * [rosconstole](https://github.com/ros/rosconsole)
+* [rosspawn_gui](https://github.com/timn/rosspawn_gui)

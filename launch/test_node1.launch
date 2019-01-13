@@ -1,6 +1,0 @@
-<launch>
-  <arg name="load_params" default="true" />
-
-  <node pkg="task_manager" type="test_node1.py" name="test_node1" output="screen">
-  </node>
-</launch>

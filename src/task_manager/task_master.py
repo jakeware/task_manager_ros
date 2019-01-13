@@ -6,6 +6,8 @@ import signal
 import shlex
 import sys
 import subprocess
+import signal
+import os
 
 from task_manager import task_info_manager
 from task_manager import task_manager_core
@@ -93,6 +95,7 @@ class TaskMaster(object):
     def StartProcess(self, task_config):
         # print "TaskMaster::StartTask"
         cmd = shlex.split(task_config.command)
+        print cmd
         if self.ProcessExists(task_config.id):
             print "[TaskMaster::StartProcess] Process with task_id:" + str(task_config.id) + " already exists.  Not starting."
             return
@@ -105,9 +108,12 @@ class TaskMaster(object):
         print "TaskMaster::StopTask"
         process = self.GetProcessById(task_id)
         if process:
-        	process.kill()
-        	return True
-        print "[TaskMaster::StopTask] Process not found.  Failed to stop process with task_id:" + str(task_id) + " and pid:" + str(process.pid) 
+            # os.system('rosnode kill /test_node1')  # dirty hack, but works
+            process.send_signal(signal.SIGINT)  # seems to work for nodes and launch files!
+            # process.kill()  # kills ros nodes and launch files too quickly
+            # process.terminate()  # kills ros nodes and launch files too quickly
+            return True
+        print "[TaskMaster::StopTask] Process not found.  Failed on task_id:" + str(task_id)
         return False
 
     def ProcessTaskCommandQueue(self):
@@ -151,6 +157,7 @@ class TaskMaster(object):
         for task_id in task_id_list:
             process_pid = self.GetProcessById(task_id).pid
             if not self.task_info_manager.GetProcessIsRunning(process_pid):
+                print "[TaskMaster::PruneProcesses] Deleting process with task_id:" + str(task_id) + " and pid:" + str(process_pid)
                 self.DeleteProcess(task_id)
 
     def GetTaskConfigList(self):
