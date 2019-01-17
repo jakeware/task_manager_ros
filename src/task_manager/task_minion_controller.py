@@ -30,10 +30,12 @@ class TaskMinionController(object):
         self.task_config_list_queue = Queue.Queue()
         self.task_config_path = task_config_path
 
+        self.cooldown_time = 3.0  # time to wait before you can interact with a task again [s]
         self.received_master_task_config_list = False  # have we received a task config list from TaskMaster yet?
         self.selected_index = 0
         self.last_selected_index = 0
-        self.active_indices = []
+        self.active_indices = []  # list of active row indices in the task list gui panel
+        self.last_action_times = {}  # dictionary (indexed by task_id) of times since action was last taken for debouncing
 
         # bind handlers to input keys
         self.root.bind('<Up>', self.HandleUp)
@@ -94,10 +96,26 @@ class TaskMinionController(object):
         task_id = self.view.TaskIndexToId(task_index)
         return self.model.GetTaskById(task_id)
 
+    def SetActionTime(self, task_id):
+        self.last_action_times[task_id] = time.time()
+
+    def TaskHasCooledDown(self, task_id):
+        if task_id not in self.last_action_times:
+            return True
+        else:
+            if self.last_action_times[task_id] < (time.time() - self.cooldown_time):
+                return True
+            else:
+                return False
+
     def HandleStart(self, event):
         for ind in self.active_indices:
             active_task = self.GetTaskByIndex(ind)
             if not active_task.children:
+                if not self.TaskHasCooledDown(active_task.id):
+                    print "[TaskMinionController] Task with id:" + str(active_task.id) + " still cooling down"
+                    return
+                self.SetActionTime(active_task.id)
                 self.publish_task_command(active_task.id, 'start')
             else:
                 self.PublishSubTreeTaskCommand('start', active_task.children)
@@ -106,6 +124,10 @@ class TaskMinionController(object):
         for ind in self.active_indices:
             active_task = self.GetTaskByIndex(ind)
             if not active_task.children:
+                if not self.TaskHasCooledDown(active_task.id):
+                    print "[TaskMinionController] Task with id:" + str(active_task.id) + " still cooling down"
+                    return
+                self.SetActionTime(active_task.id)
                 self.publish_task_command(active_task.id, 'stop')
             else:
                 self.PublishSubTreeTaskCommand('stop', active_task.children)
