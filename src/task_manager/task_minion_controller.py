@@ -42,6 +42,14 @@ class TaskMinionController(object):
         self.root.bind('<Down>', self.HandleDown)
         self.root.bind('<Control-s>', self.HandleStart)
         self.root.bind('<Control-k>', self.HandleStop)
+        self.root.bind('<Control-a>', self.HandleSelectAll)
+        self.root.bind('<Return>', self.HandleSelect)
+
+    def HandleSelectAll(self, event):
+        print "HandleSelectAll"
+
+    def HandleSelect(self, event):
+        print "HandleSelect"
 
     def SetTaskActivity(self):
         last_active_task = self.GetTaskByIndex(self.last_selected_index)
@@ -88,7 +96,12 @@ class TaskMinionController(object):
 
     def PublishSubTreeTaskCommand(self, command, task_subtree):
         for task in task_subtree.itervalues():
-            self.publish_task_command(task.id, command)
+            if not self.TaskHasCooledDown(task.id):
+                print "[TaskMinionController] Task with id:" + str(task.id) + " still cooling down"
+            else:
+                self.SetActionTime(task.id)
+                self.publish_task_command(task.id, command)
+
             if task.children:
                 self.SendSubTreeExecuteCommand(command, task.children)
 
