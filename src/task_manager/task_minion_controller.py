@@ -31,8 +31,9 @@ class TaskMinionController(object):
         self.task_config_path = task_config_path
 
         self.received_master_task_config_list = False  # have we received a task config list from TaskMaster yet?
-        self.active_index = 0
-        self.last_active_index = 0
+        self.selected_index = 0
+        self.last_selected_index = 0
+        self.active_indices = []
 
         # bind handlers to input keys
         self.root.bind('<Up>', self.HandleUp)
@@ -41,26 +42,40 @@ class TaskMinionController(object):
         self.root.bind('<Control-k>', self.HandleStop)
 
     def SetTaskActivity(self):
-        if self.last_active_index != self.active_index:
-            last_active_task = self.GetTaskByIndex(self.last_active_index)
-            self.view.SetTaskInactiveById(last_active_task.id)
-            self.SetSubTreeActivity(self.view.SetTaskInactiveById, last_active_task.children)
-            active_task = self.GetTaskByIndex(self.active_index)
-            self.view.SetTaskAndOutputActiveById(active_task.id)
-            self.SetSubTreeActivity(self.view.SetTaskActiveById, active_task.children) 
+        last_active_task = self.GetTaskByIndex(self.last_selected_index)
+        self.view.SetTaskInactiveById(last_active_task.id)
+        self.SetSubTreeActivity(self.view.SetTaskInactiveById, last_active_task.children)
+        active_task = self.GetTaskByIndex(self.selected_index)
+        self.view.SetTaskAndOutputActiveById(active_task.id)
+        self.SetSubTreeActivity(self.view.SetTaskActiveById, active_task.children) 
+
+    def SetIndexActive(self, index):
+        self.active_indices.append(index)
+
+    def SetIndexInactive(self, index):
+        if index in self.active_indices:
+            self.active_indices.remove(index)
+
+    def DecrementSelectedIndex(self):
+        self.last_selected_index = self.selected_index
+        self.selected_index = max(self.selected_index - 1, 0)
+
+    def IncrementSelectedIndex(self):
+        self.last_selected_index = self.selected_index
+        self.selected_index = min(self.selected_index + 1, self.view.GetTaskEntryCount() - 1)
 
     def HandleUp(self, event):
-        print "HandleUp"
-        self.last_active_index = self.active_index
-        self.active_index = max(self.active_index - 1, 0)
-        print "active_index: " + str(self.active_index)
+        self.DecrementSelectedIndex()
+        print "selected_index: " + str(self.selected_index)
+        self.SetIndexInactive(self.last_selected_index)
+        self.SetIndexActive(self.selected_index)
         self.SetTaskActivity()
 
     def HandleDown(self, event):
-        print "HandleDown"
-        self.last_active_index = self.active_index
-        self.active_index = min(self.active_index + 1, self.view.GetTaskEntryCount() - 1)
-        print "active_index: " + str(self.active_index)
+        self.IncrementSelectedIndex()
+        print "selected_index: " + str(self.selected_index)
+        self.SetIndexInactive(self.last_selected_index)
+        self.SetIndexActive(self.selected_index)
         self.SetTaskActivity()
 
     def SetSubTreeActivity(self, set_activity_by_id, task_subtree):
@@ -80,20 +95,20 @@ class TaskMinionController(object):
         return self.model.GetTaskById(task_id)
 
     def HandleStart(self, event):
-        print "HandleStart"
-        active_task = self.GetTaskByIndex(self.active_index)
-        if not active_task.children:
-            self.publish_task_command(active_task.id, 'start')
-        else:
-            self.PublishSubTreeTaskCommand('start', active_task.children)
+        for ind in self.active_indices:
+            active_task = self.GetTaskByIndex(ind)
+            if not active_task.children:
+                self.publish_task_command(active_task.id, 'start')
+            else:
+                self.PublishSubTreeTaskCommand('start', active_task.children)
 
     def HandleStop(self, event):
-        print "HandleStop"
-        active_task = self.GetTaskByIndex(self.active_index)
-        if not active_task.children:
-            self.publish_task_command(active_task.id, 'stop')
-        else:
-            self.PublishSubTreeTaskCommand('stop', active_task.children)
+        for ind in self.active_indices:
+            active_task = self.GetTaskByIndex(ind)
+            if not active_task.children:
+                self.publish_task_command(active_task.id, 'stop')
+            else:
+                self.PublishSubTreeTaskCommand('stop', active_task.children)
 
     def TaskInfoChanged(self, task_info):
         self.view.SetTaskStatusById(task_info.id, task_info.status)
