@@ -52,8 +52,9 @@ class TaskEntry(object):
         self.master_frame = Frame(parent_frame)
         self.master_frame.pack(fill=X)
         self.fg_color = 'white'
-        self.bg_color_inactive = 'black'
-        self.bg_color_active = 'gray'
+        self.bg_color = 'black'
+        self.bg_color_active = 'deep sky blue'
+        self.bg_color_selected = 'gray'
 
         depth_indent = task_depth * '  '
         self.name_text = Text(self.master_frame, height=1, width=10, highlightthickness=0, borderwidth=0, wrap='none', bg='black', fg=self.fg_color)
@@ -75,6 +76,26 @@ class TaskEntry(object):
 
         self.SetInactive()        
 
+    def Select(self):
+        self.name_text['bg'] = self.bg_color_selected
+        status_text = self.status_text.get("1.0",END)
+        if status_text.isspace():
+            self.status_text['bg'] = self.bg_color_selected
+            self.status_text['fg'] = self.fg_color
+        self.load_text['bg'] = self.bg_color_selected
+        self.memory_text['bg'] = self.bg_color_selected
+        self.message_text['bg'] = self.bg_color_selected
+
+    def Deselect(self):
+        self.name_text['bg'] = self.bg_color
+        status_text = self.status_text.get("1.0",END)
+        if status_text.isspace():
+            self.status_text['bg'] = self.bg_color
+            self.status_text['fg'] = self.fg_color
+        self.load_text['bg'] = self.bg_color
+        self.memory_text['bg'] = self.bg_color
+        self.message_text['bg'] = self.bg_color
+
     def SetActive(self):
         self.name_text['bg'] = self.bg_color_active
         status_text = self.status_text.get("1.0",END)
@@ -86,14 +107,14 @@ class TaskEntry(object):
         self.message_text['bg'] = self.bg_color_active
 
     def SetInactive(self):
-        self.name_text['bg'] = self.bg_color_inactive
+        self.name_text['bg'] = self.bg_color
         status_text = self.status_text.get("1.0",END)
         if status_text.isspace():
-            self.status_text['bg'] = self.bg_color_inactive
+            self.status_text['bg'] = self.bg_color
             self.status_text['fg'] = self.fg_color
-        self.load_text['bg'] = self.bg_color_inactive
-        self.memory_text['bg'] = self.bg_color_inactive
-        self.message_text['bg'] = self.bg_color_inactive
+        self.load_text['bg'] = self.bg_color
+        self.memory_text['bg'] = self.bg_color
+        self.message_text['bg'] = self.bg_color
 
     def SetTaskStatus(self, task_status):
         self.status_text.config(state='normal')
@@ -201,6 +222,18 @@ class TaskMinionView(object):
             self.task_entries[task_id].SetInactive()
         else:
             print "[TaskMinionModel::SetTaskInactiveById] Missing id:" + str(task_id)
+
+    def SelectTaskById(self, task_id):
+        if task_id in self.task_entries:
+            self.task_entries[task_id].Select()
+        else:
+            print "[TaskMinionModel::SelectById] Missing id:" + str(task_id)
+
+    def DeselectTaskById(self, task_id):
+        if task_id in self.task_entries:
+            self.task_entries[task_id].Deselect()
+        else:
+            print "[TaskMinionModel::DeselectById] Missing id:" + str(task_id)
 
     def GetTaskEntryCount(self):
         return len(self.task_entries)
