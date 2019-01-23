@@ -243,6 +243,14 @@ class TaskMinionView(object):
             return self.task_order[task_index]
         else:
             print "[TaskMinionModel::TaskIndexToId] Index out of bounds:" + str(task_index)
+            return None
+
+    def TaskIdToIndex(self, task_id):
+        if task_id in self.task_order:
+            return self.task_order.index(task_id)
+        else:
+            print "[TaskMinionModel::TaskIdToIndex] Missing id:" + str(task_index)
+            return None
 
     def SetTaskStatusById(self, task_id, task_status):
         if task_id in self.task_entries:

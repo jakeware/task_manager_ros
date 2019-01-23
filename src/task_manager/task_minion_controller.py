@@ -32,7 +32,8 @@ class TaskMinionController(object):
 
         self.cooldown_time = 3.0  # time to wait before you can interact with a task again [s]
         self.received_master_task_config_list = False  # have we received a task config list from TaskMaster yet?
-        self.active_indices = []
+        self.cursor_index = 0
+        self.active_indices = []  # list of row indices for all tasks associated with current cursor index
         self.selected_indices = []  # list of selected row indices in the task list gui panel
         self.last_action_times = {}  # dictionary (indexed by task_id) of times since action was last taken for debouncing
 
@@ -49,14 +50,15 @@ class TaskMinionController(object):
 
     def HandleSelect(self, event):
         print "HandleSelect"
-        if self.active_index not in self.selected_indices:
-            self.SelectIndex(self.active_index)
-        else:
-            self.DeselectIndex(self.active_index)
+        for ind in self.active_indices:
+            if ind not in self.selected_indices:
+                self.SelectIndex(ind)
+            else:
+                self.DeselectIndex(ind)
 
     def SetTaskSelection(self):
         for ind in range(self.view.GetTaskEntryCount()):
-            if ind == self.active_index:
+            if ind in self.active_indices:
                 continue
 
             selected_task = self.GetTaskByIndex(ind)
@@ -65,52 +67,61 @@ class TaskMinionController(object):
             else:
                 self.view.DeselectTaskById(selected_task.id)
 
-    def SetTaskActivity(self):
-        active_task = self.GetTaskByIndex(self.active_index)
-        self.view.SetTaskAndOutputActiveById(active_task.id)
-        self.SetSubTreeActivity(self.view.SetTaskActiveById, active_task.children) 
-
     def SelectIndex(self, index):
-        self.selected_indices.append(index)
+        task = self.GetTaskByIndex(index)
+        new_indices = [index]
+        self.GetSubTreeIndices(new_indices, task.children)
+
+        for ind in new_indices:
+            if ind not in self.selected_indices:
+                self.selected_indices.append(index)
 
     def DeselectIndex(self, index):
-        if index in self.selected_indices:
-            self.selected_indices.remove(index)
+        task = self.GetTaskByIndex(index)
+        new_indices = [index]
+        self.GetSubTreeIndices(new_indices, task.children)
 
-    def DecrementActiveIndex(self):
-        self.active_index = max(self.active_index - 1, 0)
+        for ind in new_indices:
+            if index in self.selected_indices:
+                self.selected_indices.remove(index)
 
-    def IncrementActiveIndex(self):
-        self.active_index = min(self.active_index + 1, self.view.GetTaskEntryCount() - 1)
+    def DecrementCursorIndex(self):
+        self.cursor_index = max(self.cursor_index - 1, 0)
+
+    def IncrementCursorIndex(self):
+        self.cursor_index = min(self.cursor_index + 1, self.view.GetTaskEntryCount() - 1)
 
     def HandleUp(self, event):
-        self.DecrementActiveIndex()
-        print "active_index: " + str(self.active_index)
-        self.SetTaskSelection()
-        self.SetTaskActivity()
+        self.DecrementCursorIndex()
+        print "cursor_index: " + str(self.cursor_index)
+        self.UpdateTaskActivity()
+        # self.SetTaskSelection()
 
     def HandleDown(self, event):
-        self.IncrementActiveIndex()
-        print "active_index: " + str(self.active_index)
-        self.SetTaskSelection()
-        self.SetTaskActivity()
+        self.IncrementCursorIndex()
+        print "cursor_index: " + str(self.cursor_index)
+        self.UpdateTaskActivity()
+        # self.SetTaskSelection()
 
-    def SetSubTreeActivity(self, set_activity_by_id, task_subtree):
+    def UpdateTaskActivity(self):
+        for ind in self.active_indices:
+            task = self.GetTaskByIndex(ind)
+            self.view.SetTaskInactiveById(task.id)
+
+        cursor_task = self.GetTaskByIndex(self.cursor_index)
+        self.active_indices = [self.cursor_index]
+        self.GetSubTreeIndices(self.active_indices, cursor_task.children)
+
+        for ind in self.active_indices:
+            task = self.GetTaskByIndex(ind)
+            self.view.SetTaskActiveById(task.id)
+        self.view.SetTaskAndOutputActiveById(cursor_task.id)
+
+    def GetSubTreeIndices(self, indices, task_subtree):
         for task in task_subtree.itervalues():
-            set_activity_by_id(task.id)
+            indices.append(self.view.TaskIdToIndex(task.id))
             if task.children:
-                self.SetSubTreeActivity(set_activity_by_id, task.children)
-
-    def PublishSubTreeTaskCommand(self, command, task_subtree):
-        for task in task_subtree.itervalues():
-            if not self.TaskHasCooledDown(task.id):
-                print "[TaskMinionController] Task with id:" + str(task.id) + " still cooling down"
-            else:
-                self.SetActionTime(task.id)
-                self.publish_task_command(task.id, command)
-
-            if task.children:
-                self.SendSubTreeExecuteCommand(command, task.children)
+                self.GetSubTreeIndices(indices, task.children)
 
     def GetTaskByIndex(self, task_index):
         task_id = self.view.TaskIndexToId(task_index)
@@ -129,28 +140,32 @@ class TaskMinionController(object):
                 return False
 
     def HandleStart(self, event):
-        for ind in self.selected_indices:
-            selected_task = self.GetTaskByIndex(ind)
-            if not selected_task.children:
-                if not self.TaskHasCooledDown(selected_task.id):
-                    print "[TaskMinionController] Task with id:" + str(selected_task.id) + " still cooling down"
-                    return
-                self.SetActionTime(selected_task.id)
-                self.publish_task_command(selected_task.id, 'start')
-            else:
-                self.PublishSubTreeTaskCommand('start', selected_task.children)
+        active_and_selected_indices = self.active_indices + list(set(self.selected_indices) - set(self.active_indices))
+        for ind in active_and_selected_indices:
+            task = self.GetTaskByIndex(ind)
+            if task.id < 0:
+                continue
+            
+            if not self.TaskHasCooledDown(task.id):
+                print "[TaskMinionController] Task with id:" + str(task.id) + " still cooling down"
+                continue
+            
+            self.SetActionTime(task.id)
+            self.publish_task_command(task.id, 'start')
 
     def HandleStop(self, event):
-        for ind in self.selected_indices:
-            selected_task = self.GetTaskByIndex(ind)
-            if not selected_task.children:
-                if not self.TaskHasCooledDown(selected_task.id):
-                    print "[TaskMinionController] Task with id:" + str(selected_task.id) + " still cooling down"
-                    return
-                self.SetActionTime(selected_task.id)
-                self.publish_task_command(selected_task.id, 'stop')
-            else:
-                self.PublishSubTreeTaskCommand('stop', selected_task.children)
+        active_and_selected_indices = self.active_indices + list(set(self.selected_indices) - set(self.active_indices))
+        for ind in active_and_selected_indices:
+            task = self.GetTaskByIndex(ind)
+            if task.id < 0:
+                continue
+
+            if not self.TaskHasCooledDown(task.id):
+                print "[TaskMinionController] Task with id:" + str(task.id) + " still cooling down"
+                continue
+
+            self.SetActionTime(task.id)
+            self.publish_task_command(task.id, 'stop')
 
     def TaskInfoChanged(self, task_info):
         self.view.SetTaskStatusById(task_info.id, task_info.status)
