@@ -30,7 +30,7 @@ class TaskMinionController(object):
         self.task_config_list_queue = Queue.Queue()
         self.task_config_path = task_config_path
 
-        self.cooldown_time = 3.0  # time to wait before you can interact with a task again [s]
+        self.cooldown_time = 6.0  # time to wait before you can interact with a task again [s]
         self.received_master_task_config_list = False  # have we received a task config list from TaskMaster yet?
         self.cursor_index = 0
         self.active_indices = []  # list of row indices for all tasks associated with current cursor index
@@ -47,22 +47,35 @@ class TaskMinionController(object):
 
     def HandleSelectAll(self, event):
         print "HandleSelectAll"
+        if set(range(self.view.GetTaskEntryCount())).issubset(self.selected_indices):
+            for ind in range(self.view.GetTaskEntryCount()):
+                self.DeselectIndex(ind)
+        else:
+            for ind in range(self.view.GetTaskEntryCount()):
+                self.SelectIndex(ind)
+
+        self.UpdateTaskActivity()
+        self.UpdateTaskSelection()
 
     def HandleSelect(self, event):
         print "HandleSelect"
-        for ind in self.active_indices:
-            if ind not in self.selected_indices:
-                self.SelectIndex(ind)
-            else:
+        if set(self.active_indices).issubset(self.selected_indices):
+            for ind in self.active_indices:
                 self.DeselectIndex(ind)
+        else:
+            for ind in self.active_indices:
+                self.SelectIndex(ind)
 
-    def SetTaskSelection(self):
+        self.UpdateTaskActivity()
+        self.UpdateTaskSelection()
+
+    def UpdateTaskSelection(self):
         for ind in range(self.view.GetTaskEntryCount()):
             if ind in self.active_indices:
                 continue
 
             selected_task = self.GetTaskByIndex(ind)
-            if ind in self.selected_indices:                
+            if ind in self.selected_indices:
                 self.view.SelectTaskById(selected_task.id)
             else:
                 self.view.DeselectTaskById(selected_task.id)
@@ -74,16 +87,24 @@ class TaskMinionController(object):
 
         for ind in new_indices:
             if ind not in self.selected_indices:
-                self.selected_indices.append(index)
+                self.selected_indices.append(ind)
 
     def DeselectIndex(self, index):
         task = self.GetTaskByIndex(index)
+
         new_indices = [index]
         self.GetSubTreeIndices(new_indices, task.children)
 
         for ind in new_indices:
-            if index in self.selected_indices:
-                self.selected_indices.remove(index)
+            if ind in self.selected_indices:
+                self.selected_indices.remove(ind)
+
+        parent_task = task.parent
+        while parent_task:
+            parent_index = self.view.TaskIdToIndex(parent_task.id)
+            if parent_index in self.selected_indices:
+                self.selected_indices.remove(parent_index)
+            parent_task = parent_task.parent
 
     def DecrementCursorIndex(self):
         self.cursor_index = max(self.cursor_index - 1, 0)
@@ -95,13 +116,13 @@ class TaskMinionController(object):
         self.DecrementCursorIndex()
         print "cursor_index: " + str(self.cursor_index)
         self.UpdateTaskActivity()
-        # self.SetTaskSelection()
+        self.UpdateTaskSelection()
 
     def HandleDown(self, event):
         self.IncrementCursorIndex()
         print "cursor_index: " + str(self.cursor_index)
         self.UpdateTaskActivity()
-        # self.SetTaskSelection()
+        self.UpdateTaskSelection()
 
     def UpdateTaskActivity(self):
         for ind in self.active_indices:

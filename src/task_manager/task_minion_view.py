@@ -249,7 +249,7 @@ class TaskMinionView(object):
         if task_id in self.task_order:
             return self.task_order.index(task_id)
         else:
-            print "[TaskMinionModel::TaskIdToIndex] Missing id:" + str(task_index)
+            print "[TaskMinionModel::TaskIdToIndex] Missing id:" + str(task_id)
             return None
 
     def SetTaskStatusById(self, task_id, task_status):

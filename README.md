@@ -38,6 +38,8 @@ The GUI supports the following commands.  Note that you can start task groups by
 * Down: Move task selection down one row.
 * Ctrl-s: Start task or group.
 * Ctrl-k: Stop task or group.
+* Ctrl-A: Select all tasks (or deselect if all are already selected)
+* Ctrl-a: Select active (highlighted) tasks
 
 ## Objectives
 
