@@ -209,31 +209,31 @@ class TaskMinionView(object):
             self.output_entries[task_id].SetActive()
             self.SetTaskActiveById(task_id)
         else:
-            print "[TaskMinionModel::SetTaskAndOutputActiveById] Missing id:" + str(task_id)
+            print "[TaskMinionView::SetTaskAndOutputActiveById] Missing id:" + str(task_id)
 
     def SetTaskActiveById(self, task_id):
         if task_id in self.task_entries:
             self.task_entries[task_id].SetActive()
         else:
-            print "[TaskMinionModel::SetTaskActiveById] Missing id:" + str(task_id)
+            print "[TaskMinionView::SetTaskActiveById] Missing id:" + str(task_id)
 
     def SetTaskInactiveById(self, task_id):
         if task_id in self.task_entries:
             self.task_entries[task_id].SetInactive()
         else:
-            print "[TaskMinionModel::SetTaskInactiveById] Missing id:" + str(task_id)
+            print "[TaskMinionView::SetTaskInactiveById] Missing id:" + str(task_id)
 
     def SelectTaskById(self, task_id):
         if task_id in self.task_entries:
             self.task_entries[task_id].Select()
         else:
-            print "[TaskMinionModel::SelectById] Missing id:" + str(task_id)
+            print "[TaskMinionView::SelectById] Missing id:" + str(task_id)
 
     def DeselectTaskById(self, task_id):
         if task_id in self.task_entries:
             self.task_entries[task_id].Deselect()
         else:
-            print "[TaskMinionModel::DeselectById] Missing id:" + str(task_id)
+            print "[TaskMinionView::DeselectById] Missing id:" + str(task_id)
 
     def GetTaskEntryCount(self):
         return len(self.task_entries)
@@ -242,14 +242,14 @@ class TaskMinionView(object):
         if task_index < len(self.task_order):
             return self.task_order[task_index]
         else:
-            print "[TaskMinionModel::TaskIndexToId] Index out of bounds:" + str(task_index)
+            print "[TaskMinionView::TaskIndexToId] Index out of bounds:" + str(task_index)
             return None
 
     def TaskIdToIndex(self, task_id):
         if task_id in self.task_order:
             return self.task_order.index(task_id)
         else:
-            print "[TaskMinionModel::TaskIdToIndex] Missing id:" + str(task_id)
+            print "[TaskMinionView::TaskIdToIndex] Missing id:" + str(task_id)
             return None
 
     def SetTaskStatusById(self, task_id, task_status):
@@ -257,32 +257,32 @@ class TaskMinionView(object):
             task_entry = self.task_entries[task_id]
             task_entry.SetTaskStatus(task_status)
         else:
-            print "[TaskMinionModel::SetTaskLoadById] Missing id:" + str(task_id)
+            print "[TaskMinionView::SetTaskLoadById] Missing id:" + str(task_id)
 
     def SetTaskLoadById(self, task_id, task_load):
         if task_id in self.task_entries:
             task_entry = self.task_entries[task_id]
             task_entry.SetTaskLoad(task_load)
         else:
-            print "[TaskMinionModel::SetTaskLoadById] Missing id:" + str(task_id)
+            print "[TaskMinionView::SetTaskLoadById] Missing id:" + str(task_id)
 
     def SetTaskMemoryById(self, task_id, task_memory):
         if task_id in self.task_entries:
             task_entry = self.task_entries[task_id]
             task_entry.SetTaskMemory(task_memory)
         else:
-            print "[TaskMinionModel::SetTaskMemoryById] Missing id:" + str(task_id)
+            print "[TaskMinionView::SetTaskMemoryById] Missing id:" + str(task_id)
 
     def SetTaskOutputById(self, task_id, task_output):
         if task_id in self.output_entries:
             output_entry = self.output_entries[task_id]
             output_entry.SetTaskOutput(task_output)
         else:
-            print "[TaskMinionModel::SetTaskOutputById] Missing id:" + str(task_id)
+            print "[TaskMinionView::SetTaskOutputById] Missing id:" + str(task_id)
 
     def SetTaskOutputDeltaById(self, task_id, task_output_delta):
         if task_id in self.output_entries:
             output_entry = self.output_entries[task_id]
             output_entry.SetTaskOutputDelta(task_output_delta)
         else:
-            print "[TaskMinionModel::SetTaskOutputById] Missing id:" + str(task_id)
+            print "[TaskMinionView::SetTaskOutputById] Missing id:" + str(task_id)

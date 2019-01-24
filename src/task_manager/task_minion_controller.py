@@ -218,9 +218,10 @@ class TaskMinionController(object):
 
     def PushMasterTaskConfigList(self, task_config_list):
         if not self.ReceivedMasterTaskConfigList():
-            print "[TaskMinionController::PushMasterTaskConfigList]"
+            print "TaskMinionController::PushMasterTaskConfigList"
             self.received_master_task_config_list = True
             self.task_config_list_queue.put(task_config_list)
+            self.UpdateTaskConfigList()
 
     def RegisterTasks(self, task_config_list):
         print "TaskMinionController::RegisterTasks"
