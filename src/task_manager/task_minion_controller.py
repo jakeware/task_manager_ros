@@ -41,7 +41,9 @@ class TaskMinionController(object):
         self.root.bind('<Up>', self.HandleUp)
         self.root.bind('<Down>', self.HandleDown)
         self.root.bind('<Control-s>', self.HandleStart)
+        self.root.bind('<Control-S>', self.HandleQuickStart)
         self.root.bind('<Control-k>', self.HandleStop)
+        self.root.bind('<Control-K>', self.HandleQuickStop)
         self.root.bind('<Control-A>', self.HandleSelectAll)
         self.root.bind('<Control-a>', self.HandleSelect)
 
@@ -71,9 +73,6 @@ class TaskMinionController(object):
 
     def UpdateTaskSelection(self):
         for ind in range(self.view.GetTaskEntryCount()):
-            if ind in self.active_indices:
-                continue
-
             selected_task = self.GetTaskByIndex(ind)
             if ind in self.selected_indices:
                 self.view.SelectTaskById(selected_task.id)
@@ -107,36 +106,42 @@ class TaskMinionController(object):
             parent_task = parent_task.parent
 
     def DecrementCursorIndex(self):
+        cursor_task = self.GetTaskByIndex(self.cursor_index)
+        self.view.DefocusTaskById(cursor_task.id)
         self.cursor_index = max(self.cursor_index - 1, 0)
+        cursor_task = self.GetTaskByIndex(self.cursor_index)
+        self.view.FocusTaskAndOutputById(cursor_task.id)
 
     def IncrementCursorIndex(self):
+        cursor_task = self.GetTaskByIndex(self.cursor_index)
+        self.view.DefocusTaskById(cursor_task.id)
         self.cursor_index = min(self.cursor_index + 1, self.view.GetTaskEntryCount() - 1)
+        cursor_task = self.GetTaskByIndex(self.cursor_index)
+        self.view.FocusTaskAndOutputById(cursor_task.id)
 
     def HandleUp(self, event):
         self.DecrementCursorIndex()
-        print "cursor_index: " + str(self.cursor_index)
+        # print "cursor_index: " + str(self.cursor_index)
         self.UpdateTaskActivity()
         self.UpdateTaskSelection()
 
     def HandleDown(self, event):
         self.IncrementCursorIndex()
-        print "cursor_index: " + str(self.cursor_index)
+        # print "cursor_index: " + str(self.cursor_index)
         self.UpdateTaskActivity()
         self.UpdateTaskSelection()
 
     def UpdateTaskActivity(self):
         for ind in self.active_indices:
             task = self.GetTaskByIndex(ind)
-            self.view.SetTaskInactiveById(task.id)
+            self.view.DeactivateTaskById(task.id)
 
         cursor_task = self.GetTaskByIndex(self.cursor_index)
         self.active_indices = [self.cursor_index]
         self.GetSubTreeIndices(self.active_indices, cursor_task.children)
-
         for ind in self.active_indices:
             task = self.GetTaskByIndex(ind)
-            self.view.SetTaskActiveById(task.id)
-        self.view.SetTaskAndOutputActiveById(cursor_task.id)
+            self.view.ActivateTaskById(task.id)
 
     def GetSubTreeIndices(self, indices, task_subtree):
         for task in task_subtree.itervalues():
@@ -174,6 +179,9 @@ class TaskMinionController(object):
             self.SetActionTime(task.id)
             self.publish_task_command(task.id, 'start')
 
+    def HandleQuickStart(self):
+        print "TaskMinionController::HandleQuickStop"
+
     def HandleStop(self, event):
         active_and_selected_indices = self.active_indices + list(set(self.selected_indices) - set(self.active_indices))
         for ind in active_and_selected_indices:
@@ -187,6 +195,9 @@ class TaskMinionController(object):
 
             self.SetActionTime(task.id)
             self.publish_task_command(task.id, 'stop')
+
+    def HandleQuickStop(self):
+        print "TaskMinionController::HandleQuickStart"
 
     def TaskInfoChanged(self, task_info):
         self.view.SetTaskStatusById(task_info.id, task_info.status)
