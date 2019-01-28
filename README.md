@@ -32,12 +32,16 @@ The process list can be found in task_manager_ros/cfg/task_config.yaml.  Each pr
 
 ## Interface
 
-The GUI supports the following commands.  Note that you can start task groups by selected the group row and issuing the corresponding hotkey command.
+The GUI supports the following commands.  Note that when a group is selected, the group and its children become active and are high-lighted.  You can control an active task or task group by selecting the row and issuing a start or stop command.
 
-* Up: Move task selection up one row.
-* Down: Move task selection down one row.
-* Ctrl-s: Start task or group.
-* Ctrl-k: Stop task or group.
+* Cursor Up [Up]: Move task cursor up one row.
+* Cursor Down [Down]: Move task cursor down one row.
+* Start Selected [Ctrl-s]: Start only selected tasks or groups.  Do nothing for active tasks that are not selected.
+* Stop Selected [Ctrl-k]: Stop only selected tasks or groups.  Do nothing for active tasks that are not selected.
+* Start Active [Ctrl-S]: Start only active tasks or groups (i.e. those in the current cursor row and its children).
+* Stop Active [Ctrl-K]: Stop only active tasks or groups (i.e. those in the current cursor row and its children).
+* Toggle Select [Ctrl-a]: Select all tasks that are currently active (highlighted).  If only some currently active tasks are selected, select the rest.  If all are already selected, deselect all.
+* Toggle Select All [Ctrl-A]: Select all tasks (or deselect if all are already selected).
 
 ## Objectives
 

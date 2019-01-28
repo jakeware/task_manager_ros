@@ -103,6 +103,9 @@ class TaskMinionModel(object):
     def SetTaskInfo(self, task_info):
         # print "TaskMinionModel::SetTaskInfo"
         task = self.GetTaskById(task_info.id)
+        if not task:
+            return
+
         task.info.id = task_info.id
         task.info.status = task_info.status
         task.info.load = task_info.load
