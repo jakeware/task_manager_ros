@@ -179,12 +179,8 @@ class TaskMinionController(object):
             self.publish_task_command(task.id, 'start')
 
     def HandleQuickStart(self, event):
-        task_indices = [self.cursor_index]
-        task = self.GetTaskByIndex(self.cursor_index)
-        self.GetSubTreeIndices(task_indices, task.children)
-
-        for ind in task_indices:
-            task = self.GetTaskByIndex(self.cursor_index)
+        for ind in self.active_indices:
+            task = self.GetTaskByIndex(ind)
             if task.id < 0:
                 continue
             
@@ -209,12 +205,8 @@ class TaskMinionController(object):
             self.publish_task_command(task.id, 'stop')
 
     def HandleQuickStop(self, event):
-        task_indices = [self.cursor_index]
-        task = self.GetTaskByIndex(self.cursor_index)
-        self.GetSubTreeIndices(task_indices, task.children)
-
-        for ind in task_indices:
-            task = self.GetTaskByIndex(self.cursor_index)
+        for ind in self.active_indices:
+            task = self.GetTaskByIndex(ind)
             if task.id < 0:
                 continue
             
