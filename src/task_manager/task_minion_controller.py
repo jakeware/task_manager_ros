@@ -166,8 +166,7 @@ class TaskMinionController(object):
                 return False
 
     def HandleStart(self, event):
-        active_and_selected_indices = self.active_indices + list(set(self.selected_indices) - set(self.active_indices))
-        for ind in active_and_selected_indices:
+        for ind in self.selected_indices:
             task = self.GetTaskByIndex(ind)
             if task.id < 0:
                 continue
@@ -179,12 +178,25 @@ class TaskMinionController(object):
             self.SetActionTime(task.id)
             self.publish_task_command(task.id, 'start')
 
-    def HandleQuickStart(self):
-        print "TaskMinionController::HandleQuickStop"
+    def HandleQuickStart(self, event):
+        task_indices = [self.cursor_index]
+        task = self.GetTaskByIndex(self.cursor_index)
+        self.GetSubTreeIndices(task_indices, task.children)
+
+        for ind in task_indices:
+            task = self.GetTaskByIndex(self.cursor_index)
+            if task.id < 0:
+                continue
+            
+            if not self.TaskHasCooledDown(task.id):
+                print "[TaskMinionController] Task with id:" + str(task.id) + " still cooling down"
+                continue
+            
+            self.SetActionTime(task.id)
+            self.publish_task_command(task.id, 'start')
 
     def HandleStop(self, event):
-        active_and_selected_indices = self.active_indices + list(set(self.selected_indices) - set(self.active_indices))
-        for ind in active_and_selected_indices:
+        for ind in self.selected_indices:
             task = self.GetTaskByIndex(ind)
             if task.id < 0:
                 continue
@@ -196,8 +208,22 @@ class TaskMinionController(object):
             self.SetActionTime(task.id)
             self.publish_task_command(task.id, 'stop')
 
-    def HandleQuickStop(self):
-        print "TaskMinionController::HandleQuickStart"
+    def HandleQuickStop(self, event):
+        task_indices = [self.cursor_index]
+        task = self.GetTaskByIndex(self.cursor_index)
+        self.GetSubTreeIndices(task_indices, task.children)
+
+        for ind in task_indices:
+            task = self.GetTaskByIndex(self.cursor_index)
+            if task.id < 0:
+                continue
+            
+            if not self.TaskHasCooledDown(task.id):
+                print "[TaskMinionController] Task with id:" + str(task.id) + " still cooling down"
+                continue
+            
+            self.SetActionTime(task.id)
+            self.publish_task_command(task.id, 'stop')
 
     def TaskInfoChanged(self, task_info):
         self.view.SetTaskStatusById(task_info.id, task_info.status)
