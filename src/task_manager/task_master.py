@@ -94,7 +94,8 @@ class TaskMaster(object):
 
     def StartProcess(self, task_config):
         # print "TaskMaster::StartTask"
-        cmd = shlex.split(task_config.command)
+        stdbuf_cmd = 'stdbuf -o L'
+        cmd = shlex.split(stdbuf_cmd + ' ' + task_config.command)
         print cmd
         if self.ProcessExists(task_config.id):
             print "[TaskMaster::StartProcess] Process with task_id:" + str(task_config.id) + " already exists.  Not starting."
