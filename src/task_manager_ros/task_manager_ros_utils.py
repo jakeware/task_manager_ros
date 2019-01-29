@@ -64,3 +64,20 @@ def ConvertFromRosTaskInfo(task_info_msg):
     task_info.stdout_delta = task_info_msg.stdout_delta
 
     return task_info
+
+def ConvertToRosTaskInfoList(task_info_list):
+    task_info_list_msg = task_manager_ros.msg.TaskInfoList()
+    task_info_list_msg.header.stamp = rospy.Time.now()
+    for info in task_info_list:
+        task_info_msg = ConvertToRosTaskInfo(info)
+        task_info_list_msg.task_infos.append(task_info_msg)
+
+    return task_info_list_msg
+
+def ConvertFromRosTaskInfoList(task_info_list_msg):
+    task_info_list = []
+    for info in task_info_list_msg.task_infos:
+        task_info = ConvertFromRosTaskInfo(info)
+        task_info_list.append(task_info)
+
+    return task_info_list

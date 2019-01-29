@@ -31,6 +31,7 @@ add_message_files(FILES
   TaskConfig.msg
   TaskCommand.msg
   TaskConfigList.msg
+  TaskInfoList.msg
   )
 
 add_service_files(FILES

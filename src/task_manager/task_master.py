@@ -26,8 +26,8 @@ class TaskMaster(object):
         self.task_config_queue = Queue.Queue()
         self.task_info_manager = task_info_manager.TaskInfoManager()
 
-    def SetPublishTaskInfoCallback(self, callback):
-        self.publish_task_info = callback
+    def SetPublishTaskInfoListCallback(self, callback):
+        self.publish_task_info_list = callback
 
     def SetPublishTaskConfigListCallback(self, callback):
     	self.publish_task_config_list = callback
@@ -139,11 +139,12 @@ class TaskMaster(object):
 
     def UpdateTaskInfo(self):
         # print "TaskMaster::UpdateTaskInfo"
+        task_info_list = []
         task_id_list = self.GetTaskConfigKeys()
         for task_id in task_id_list:
             task_info = self.task_info_manager.GetTaskInfoById(task_id)
             if task_info:
-                self.publish_task_info(task_info)
+                task_info_list.append(task_info)
                 continue
 
             if not self.task_info_manager.TaskInfoQueueExists(task_id):
@@ -151,7 +152,8 @@ class TaskMaster(object):
                 task_info.load = 0
                 task_info.memory = 0
                 task_info.status = 'stopped'
-                self.publish_task_info(task_info)
+                task_info_list.append(task_info)
+        self.publish_task_info_list(task_info_list)
 
     def GetProcessesKeys(self):
         return list(self.processes.keys())
