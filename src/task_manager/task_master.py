@@ -139,7 +139,6 @@ class TaskMaster(object):
     def UpdateTaskInfo(self):
         # print "TaskMaster::UpdateTaskInfo"
         task_id_list = self.GetTaskConfigKeys()
-        print task_id_list
         for task_id in task_id_list:
             task_info = self.task_info_manager.GetTaskInfoById(task_id)
             if task_info:
@@ -162,6 +161,8 @@ class TaskMaster(object):
         for task_id in task_id_list:
             process_pid = self.GetProcessById(task_id).pid
             if not self.task_info_manager.GetProcessIsRunning(process_pid):
+                if not self.task_info_manager.TaskQueuesEmpty(task_id):
+                    continue
                 print "[TaskMaster::PruneProcesses] Deleting process with task_id:" + str(task_id) + " and pid:" + str(process_pid)
                 self.DeleteProcess(task_id)
                 self.task_info_manager.RemoveTask(task_id)

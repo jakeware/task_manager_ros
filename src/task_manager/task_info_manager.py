@@ -44,6 +44,12 @@ class TaskInfoManager(object):
         info_queue = Queue.Queue()
         self.SetTaskInfoQueue(task_id, info_queue)
 
+    def TaskQueuesEmpty(self, task_id):
+        info_empty = self.task_info_queues[task_id].empty()
+        stats_empty = self.task_stats_queues[task_id].empty()
+        output_empty = self.task_output_queues[task_id].empty()
+        return info_empty and stats_empty and output_empty
+
     def RemoveTask(self, task_id):
         self.RemoveTaskOutputQueue(task_id)
         self.RemoveTaskInfoQueue(task_id)
