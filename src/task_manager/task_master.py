@@ -148,6 +148,8 @@ class TaskMaster(object):
 
             if not self.task_info_manager.TaskInfoQueueExists(task_id):
                 task_info = task_manager_core.TaskInfo(task_id)
+                task_info.load = 0
+                task_info.memory = 0
                 task_info.status = 'stopped'
                 self.publish_task_info(task_info)
 
@@ -163,7 +165,6 @@ class TaskMaster(object):
             process_pid = self.GetProcessById(task_id).pid
             if not self.task_info_manager.GetProcessIsRunning(process_pid):
                 if not self.task_info_manager.TaskQueuesEmpty(task_id):
-                    print "queues not empty"
                     continue
                 print "[TaskMaster::PruneProcesses] Deleting process with task_id:" + str(task_id) + " and pid:" + str(process_pid)
                 self.DeleteProcess(task_id)

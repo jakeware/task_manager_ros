@@ -218,11 +218,18 @@ class TaskMinionController(object):
             self.publish_task_command(task.id, 'stop')
 
     def TaskInfoChanged(self, task_info):
-        self.view.SetTaskStatusById(task_info.id, task_info.status)
-        self.view.SetTaskLoadById(task_info.id, task_info.load)
-        self.view.SetTaskMemoryById(task_info.id, task_info.memory)
-        self.view.SetTaskOutputDeltaById(task_info.id, task_info.stdout_delta)
-        task_info.stdout_delta = ""
+        if task_info.status:
+            self.view.SetTaskStatusById(task_info.id, task_info.status)
+
+        if task_info.load >= 0:
+            self.view.SetTaskLoadById(task_info.id, task_info.load)
+
+        if task_info.memory >= 0:
+            self.view.SetTaskMemoryById(task_info.id, task_info.memory)
+
+        if task_info.stdout_delta:
+            self.view.SetTaskOutputDeltaById(task_info.id, task_info.stdout_delta)
+            task_info.stdout_delta = ""
 
     def AddTaskEntriesDepthFirst(self, tasks, depth=0):
         for task in tasks.itervalues():
