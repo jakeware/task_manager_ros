@@ -26,8 +26,8 @@ class TaskMaster(object):
         self.task_config_queue = Queue.Queue()
         self.task_info_manager = task_info_manager.TaskInfoManager()
 
-    def SetPublishTaskInfoCallback(self, callback):
-        self.publish_task_info = callback
+    def SetPublishTaskInfoListCallback(self, callback):
+        self.publish_task_info_list = callback
 
     def SetPublishTaskConfigListCallback(self, callback):
     	self.publish_task_config_list = callback
@@ -94,7 +94,8 @@ class TaskMaster(object):
 
     def StartProcess(self, task_config):
         # print "TaskMaster::StartTask"
-        cmd = shlex.split(task_config.command)
+        stdbuf_cmd = 'stdbuf -o L'
+        cmd = shlex.split(stdbuf_cmd + ' ' + task_config.command)
         print cmd
         if self.ProcessExists(task_config.id):
             print "[TaskMaster::StartProcess] Process with task_id:" + str(task_config.id) + " already exists.  Not starting."
@@ -108,10 +109,14 @@ class TaskMaster(object):
         print "TaskMaster::StopTask"
         process = self.GetProcessById(task_id)
         if process:
-            # os.system('rosnode kill /test_node1')  # dirty hack, but works
-            process.send_signal(signal.SIGINT)  # seems to work for nodes and launch files!
-            # process.kill()  # kills ros nodes and launch files too quickly
-            # process.terminate()  # kills ros nodes and launch files too quickly
+            try:
+                process.send_signal(signal.SIGINT)  # seems to work for nodes and launch files!
+                # os.system('rosnode kill /test_node1')  # dirty hack, but works
+                # process.kill()  # kills ros nodes and launch files too quickly
+                # process.terminate()  # kills ros nodes and launch files too quickly
+            except:
+                print "[TaskMaster::StopProcess] Failed to stop process with pid:" + str(process.pid)
+                pass
             return True
         print "[TaskMaster::StopTask] Process not found.  Failed on task_id:" + str(task_id)
         return False
@@ -134,17 +139,21 @@ class TaskMaster(object):
 
     def UpdateTaskInfo(self):
         # print "TaskMaster::UpdateTaskInfo"
+        task_info_list = []
         task_id_list = self.GetTaskConfigKeys()
         for task_id in task_id_list:
             task_info = self.task_info_manager.GetTaskInfoById(task_id)
             if task_info:
-                self.publish_task_info(task_info)
+                task_info_list.append(task_info)
                 continue
 
             if not self.task_info_manager.TaskInfoQueueExists(task_id):
                 task_info = task_manager_core.TaskInfo(task_id)
+                task_info.load = 0
+                task_info.memory = 0
                 task_info.status = 'stopped'
-                self.publish_task_info(task_info)
+                task_info_list.append(task_info)
+        self.publish_task_info_list(task_info_list)
 
     def GetProcessesKeys(self):
         return list(self.processes.keys())
@@ -157,8 +166,11 @@ class TaskMaster(object):
         for task_id in task_id_list:
             process_pid = self.GetProcessById(task_id).pid
             if not self.task_info_manager.GetProcessIsRunning(process_pid):
+                if not self.task_info_manager.TaskQueuesEmpty(task_id):
+                    continue
                 print "[TaskMaster::PruneProcesses] Deleting process with task_id:" + str(task_id) + " and pid:" + str(process_pid)
                 self.DeleteProcess(task_id)
+                self.task_info_manager.RemoveTask(task_id)
 
     def GetTaskConfigList(self):
         task_config_list = []

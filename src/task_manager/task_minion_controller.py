@@ -46,9 +46,15 @@ class TaskMinionController(object):
         self.root.bind('<Control-K>', self.HandleQuickStop)
         self.root.bind('<Control-A>', self.HandleSelectAll)
         self.root.bind('<Control-a>', self.HandleSelect)
+        self.root.bind('<Control-l>', self.HandleClear)
+
+    def HandleClear(self, event):
+        print "HandleClear"
+        cursor_task = self.GetTaskByIndex(self.cursor_index)
+        self.view.SetTaskOutputById(cursor_task.id, '')
 
     def HandleSelectAll(self, event):
-        print "HandleSelectAll"
+        # print "HandleSelectAll"
         if set(range(self.view.GetTaskEntryCount())).issubset(self.selected_indices):
             for ind in range(self.view.GetTaskEntryCount()):
                 self.DeselectIndex(ind)
@@ -60,7 +66,7 @@ class TaskMinionController(object):
         self.UpdateTaskSelection()
 
     def HandleSelect(self, event):
-        print "HandleSelect"
+        # print "HandleSelect"
         if set(self.active_indices).issubset(self.selected_indices):
             for ind in self.active_indices:
                 self.DeselectIndex(ind)
@@ -218,11 +224,18 @@ class TaskMinionController(object):
             self.publish_task_command(task.id, 'stop')
 
     def TaskInfoChanged(self, task_info):
-        self.view.SetTaskStatusById(task_info.id, task_info.status)
-        self.view.SetTaskLoadById(task_info.id, task_info.load)
-        self.view.SetTaskMemoryById(task_info.id, task_info.memory)
-        self.view.SetTaskOutputDeltaById(task_info.id, task_info.stdout_delta)
-        task_info.stdout_delta = ""
+        if task_info.status:
+            self.view.SetTaskStatusById(task_info.id, task_info.status)
+
+        if task_info.load >= 0:
+            self.view.SetTaskLoadById(task_info.id, task_info.load)
+
+        if task_info.memory >= 0:
+            self.view.SetTaskMemoryById(task_info.id, task_info.memory)
+
+        if task_info.stdout_delta:
+            self.view.SetTaskOutputDeltaById(task_info.id, task_info.stdout_delta)
+            task_info.stdout_delta = ""
 
     def AddTaskEntriesDepthFirst(self, tasks, depth=0):
         for task in tasks.itervalues():

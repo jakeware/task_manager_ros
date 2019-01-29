@@ -12,12 +12,12 @@ class TaskMasterRos(object):
         print "TaskMasterRos::Constructor"
         self.task_master = task_master.TaskMaster()
         self.task_master.SetPublishTaskConfigListCallback(self.PublishTaskConfigList)
-        self.task_master.SetPublishTaskInfoCallback(self.PublishTaskInfo)
+        self.task_master.SetPublishTaskInfoListCallback(self.PublishTaskInfoList)
 
-    def PublishTaskInfo(self, task_info):
+    def PublishTaskInfoList(self, task_info_list):
         # print "TaskMasterRos::PublishTaskInfo"
-        task_info_msg = task_manager_ros_utils.ConvertToRosTaskInfo(task_info)
-        self.task_info_pub.publish(task_info_msg)
+        task_info_list_msg = task_manager_ros_utils.ConvertToRosTaskInfoList(task_info_list)
+        self.task_info_list_pub.publish(task_info_list_msg)
 
     def RegisterTaskCallback(self, req):
         new_task_id = self.task_master.GetNewTaskId()
@@ -37,7 +37,7 @@ class TaskMasterRos(object):
     def Run(self):
         print "TaskMasterRos::Run"
         rospy.loginfo("Starting TaskMasterRos\n")
-        self.task_info_pub = rospy.Publisher('~task_info', task_manager_ros.msg.TaskInfo, queue_size=10)
+        self.task_info_list_pub = rospy.Publisher('~task_info_list', task_manager_ros.msg.TaskInfoList, queue_size=10)
         self.task_config_list_pub = rospy.Publisher('~task_config_list', task_manager_ros.msg.TaskConfigList, queue_size=10)
         rospy.Subscriber("~task_command", task_manager_ros.msg.TaskCommand, self.TaskCommandCallback)
         self.register_task_srv = rospy.Service('~register_task', RegisterTask, self.RegisterTaskCallback)

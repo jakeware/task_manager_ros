@@ -18,8 +18,8 @@ process4:
   - dependencies:
     - process3
 process5:
-  - command: stdbuf -o L rosrun task_manager_ros test_node1.py
+  - command: rosrun task_manager_ros test_node3.py output_topic:=arg_foo param1:=arg_bar
   - dependencies:
     - process4
 process6:
-  - command: stdbuf -o L roslaunch task_manager_ros test_nodes.launch
+  - command: roslaunch task_manager_ros test_nodes.launch foo:=blah1 bar:=blah2 switch:=true

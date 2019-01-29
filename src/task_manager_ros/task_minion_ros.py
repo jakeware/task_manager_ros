@@ -39,16 +39,17 @@ class TaskMinionRos(object):
         task_config_list = task_manager_ros_utils.ConvertFromRosTaskConfigList(task_config_list_msg)
         self.controller.PushMasterTaskConfigList(task_config_list)
 
-    def TaskInfoCallback(self, task_info_msg):
+    def TaskInfoListCallback(self, task_info_list_msg):
         # print "TaskMinionRos::TaskStatusCallback"
-        task_info = task_manager_ros_utils.ConvertFromRosTaskInfo(task_info_msg)
-        self.controller.PushTaskInfo(task_info)
+        task_info_list = task_manager_ros_utils.ConvertFromRosTaskInfoList(task_info_list_msg)
+        for task_info in task_info_list:
+            self.controller.PushTaskInfo(task_info)
 
     def Run(self):
         print "TaskMinionRos::Run"
         rospy.loginfo("Starting TaskMinionRos\n")
         rospy.Subscriber("/task_master/task_config_list", task_manager_ros.msg.TaskConfigList, self.TaskConfigListCallback)
-        rospy.Subscriber("/task_master/task_info", task_manager_ros.msg.TaskInfo, self.TaskInfoCallback)
+        rospy.Subscriber("/task_master/task_info_list", task_manager_ros.msg.TaskInfoList, self.TaskInfoListCallback)
         self.task_command_publisher = rospy.Publisher('/task_master/task_command', task_manager_ros.msg.TaskCommand, queue_size=10)
 
         self.controller.Run()

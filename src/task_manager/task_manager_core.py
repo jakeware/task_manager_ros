@@ -4,8 +4,8 @@ class TaskInfo(object):
     def __init__(self, task_id=-1):
         self.id = task_id
         self.status = ""
-        self.load = 0
-        self.memory = 0
+        self.load = -1
+        self.memory = -1
         self.stdout = ""
         self.stdout_delta = ""
         # self.message = ""

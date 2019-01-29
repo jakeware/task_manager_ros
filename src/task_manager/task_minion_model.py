@@ -106,12 +106,18 @@ class TaskMinionModel(object):
         if not task:
             return
 
-        task.info.id = task_info.id
-        task.info.status = task_info.status
-        task.info.load = task_info.load
-        task.info.memory = task_info.memory
-        task.info.stdout_delta = task_info.stdout_delta
-        task.info.stdout = task.info.stdout + task_info.stdout_delta
+        if task_info.status:
+            task.info.status = task_info.status
+
+        if task_info.load >= 0:
+            task.info.load = task_info.load
+
+        if task_info.memory >= 0:
+            task.info.memory = task_info.memory
+
+        if task_info.stdout_delta:
+            task.info.stdout_delta = task_info.stdout_delta
+            task.info.stdout = task.info.stdout + task_info.stdout_delta
         self.task_info_changed(task.info)
         self.UpdateTaskInfo(task.parent)
 
@@ -119,15 +125,26 @@ class TaskMinionModel(object):
         if not task:
             return
 
+        valid_load = False
+        valid_memory = False
         load_total = 0
         memory_total = 0
         for child_task in task.children.itervalues():
-            load_total = load_total + child_task.info.load
-            memory_total = memory_total + child_task.info.memory
-        task.info.load = load_total
-        task.info.memory = memory_total
-        self.task_info_changed(task.info)
+            if child_task.info.load >= 0:
+                valid_load = True
+                load_total = load_total + child_task.info.load
 
+            if child_task.info.memory >= 0:
+                valid_memory = True
+                memory_total = memory_total + child_task.info.memory
+
+        if valid_load:
+            task.info.load = load_total
+
+        if valid_memory:
+            task.info.memory = memory_total
+
+        self.task_info_changed(task.info)
         self.UpdateTaskInfo(task.parent)
 
     def SetTaskConfigListChangedCallback(self, callback):

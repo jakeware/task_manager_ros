@@ -1,0 +1,9 @@
+<launch>
+  <arg name="foo" default="blah" />
+  <arg name="bar" default="blah" />
+
+  <node pkg="task_manager_ros" type="test_node2.py" name="test_node2" output="screen">
+    <remap from="output_topic" to="$(arg foo)" />
+  	<param name="param1" value="$(arg bar)" />
+  </node>
+</launch>
