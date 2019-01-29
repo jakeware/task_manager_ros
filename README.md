@@ -54,11 +54,13 @@ Here are the objectives for this package.
 * Display memory consumption for every process
 * Display current state (running, stopped, etc.) for every process
 * Display separate standard output stream for every process
-* Enforce a dependency structure when starting a set of processes
 * Use a simple YAML configuration file (No XML)
 * Provide a ROS message passing framework
 * Provide a non-GUI interface for headless operation on build servers
-* [Maybe] Start and stop ROS launch files correctly
+* Start and stop ROS launch files correctly
+* (Untested) Allow for nested process groups
+* (Not Implemented) Enforce a dependency structure when starting a set of processes
+* (Not Implemented) Handle ROS parameter parsing to define args to nodes and launch files
 
 ## Alternatives
 
