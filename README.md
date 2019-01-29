@@ -42,6 +42,7 @@ The GUI supports the following commands.  Note that when a group is selected, th
 * Stop Active [Ctrl-K]: Stop only active tasks or groups (i.e. those in the current cursor row and its children).
 * Toggle Select [Ctrl-a]: Select all tasks that are currently active (highlighted).  If only some currently active tasks are selected, select the rest.  If all are already selected, deselect all.
 * Toggle Select All [Ctrl-A]: Select all tasks (or deselect if all are already selected).
+* Clear Output [Ctrl-l]: Clear text output window for the current cursor row.
 
 ## Objectives
 

@@ -46,9 +46,15 @@ class TaskMinionController(object):
         self.root.bind('<Control-K>', self.HandleQuickStop)
         self.root.bind('<Control-A>', self.HandleSelectAll)
         self.root.bind('<Control-a>', self.HandleSelect)
+        self.root.bind('<Control-l>', self.HandleClear)
+
+    def HandleClear(self, event):
+        print "HandleClear"
+        cursor_task = self.GetTaskByIndex(self.cursor_index)
+        self.view.SetTaskOutputById(cursor_task.id, '')
 
     def HandleSelectAll(self, event):
-        print "HandleSelectAll"
+        # print "HandleSelectAll"
         if set(range(self.view.GetTaskEntryCount())).issubset(self.selected_indices):
             for ind in range(self.view.GetTaskEntryCount()):
                 self.DeselectIndex(ind)
@@ -60,7 +66,7 @@ class TaskMinionController(object):
         self.UpdateTaskSelection()
 
     def HandleSelect(self, event):
-        print "HandleSelect"
+        # print "HandleSelect"
         if set(self.active_indices).issubset(self.selected_indices):
             for ind in self.active_indices:
                 self.DeselectIndex(ind)
