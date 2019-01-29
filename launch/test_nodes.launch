@@ -1,9 +1,15 @@
 <launch>
-  <arg name="load_params" default="true" />
+  <arg name="foo" default="blah" />
+  <arg name="bar" default="blah" />
+  <arg name="switch" default="true" />
 
-  <node pkg="task_manager_ros" type="test_node1.py" name="test_node1" output="screen">
-  </node>
+  <include if="$(arg switch)" file="$(find task_manager_ros)/launch/test_node1.launch" >
+    <arg name="foo" value="$(arg foo)" />
+    <arg name="bar" value="$(arg bar)" />
+  </include>
 
-  <node pkg="task_manager_ros" type="test_node2.py" name="test_node2" output="screen">
-  </node>
+  <include file="$(find task_manager_ros)/launch/test_node2.launch" >
+    <arg name="foo" value="$(arg foo)" />
+    <arg if="$(arg switch)" name="bar" value="$(arg bar)" />
+  </include>
 </launch>

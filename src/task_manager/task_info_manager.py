@@ -133,7 +133,8 @@ class TaskInfoManager(object):
         try:
             return task_output_queue.get_nowait() # or q.get(timeout=.1)
         except Queue.Empty:
-            print "No output for process with task id:" + str(task_id)
+            # print "No output for process with task id:" + str(task_id)
+            pass
 
         return None
 
@@ -205,24 +206,27 @@ class TaskInfoManager(object):
         process.stdout.close()
 
     def UpdateTaskStats(self, task_id, process, task_stats_queue):
-        while psutil.pid_exists(process.pid):
+        pid = process.pid
+        while psutil.pid_exists(pid):
+            print "test"
             task_info = task_manager_core.TaskInfo(task_id)
 
-            load = self.GetProcessLoad(process.pid)
+            load = self.GetProcessLoad(pid)
             if load:
                 task_info.load = load
 
-            memory = self.GetProcessMemory(process.pid)
+            memory = self.GetProcessMemory(pid)
             if memory:
                 task_info.memory = memory
 
-            is_running = self.GetProcessIsRunning(process.pid)
+            is_running = self.GetProcessIsRunning(pid)
             if is_running:
                 task_info.status = 'running'
             else:
                 task_info.status = 'stopped'
 
             task_stats_queue.put(task_info)
+
             time.sleep(0.1)
 
     def UpdateTaskInfo(self):
