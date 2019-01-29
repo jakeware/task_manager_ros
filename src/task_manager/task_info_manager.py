@@ -44,20 +44,37 @@ class TaskInfoManager(object):
         info_queue = Queue.Queue()
         self.SetTaskInfoQueue(task_id, info_queue)
 
+    def RemoveTask(self, task_id):
+        self.RemoveTaskOutputQueue(task_id)
+        self.RemoveTaskInfoQueue(task_id)
+        self.RemoveTaskStatsQueue(task_id)
+
     def SetTaskOutputQueue(self, task_id, task_output_queue):
         # print "TaskInfoManager::AddTaskOutputQueue"
         with self.task_output_lock:
             self.task_output_queues[task_id] = task_output_queue
+
+    def RemoveTaskOutputQueue(self, task_id):
+        with self.task_output_lock:
+            del self.task_output_queues[task_id]
 
     def SetTaskInfoQueue(self, task_id, task_info_queue):
         # print "TaskInfoManager::AddTaskInfoQueue"
         with self.task_info_lock:
             self.task_info_queues[task_id] = task_info_queue
 
+    def RemoveTaskInfoQueue(self, task_id):
+        with self.task_info_lock:
+            del self.task_info_queues[task_id]
+
     def SetTaskStatsQueue(self, task_id, task_stats_queue):
         # print "TaskInfoManager::AddTaskStatsQueue"
         with self.task_stats_lock:
             self.task_stats_queues[task_id] = task_stats_queue
+
+    def RemoveTaskStatsQueue(self, task_id):
+        with self.task_stats_lock:
+            del self.task_stats_queues[task_id]
 
     def TaskOutputQueueExists(self, task_id):
         if task_id in self.task_output_queues:
