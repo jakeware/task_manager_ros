@@ -52,4 +52,6 @@ catkin_install_python(PROGRAMS
   src/task_manager_ros/task_minion_ros_node.py
   src/task_manager_ros/task_master_ros_node.py
   src/test_nodes/test_node1.py
+  src/test_nodes/test_node2.py
+  src/test_nodes/test_node3.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

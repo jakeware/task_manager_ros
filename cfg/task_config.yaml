@@ -18,7 +18,7 @@ process4:
   - dependencies:
     - process3
 process5:
-  - command: stdbuf -o L rosrun task_manager_ros test_node1.py
+  - command: stdbuf -o L rosrun task_manager_ros test_node3.py
   - dependencies:
     - process4
 process6:
